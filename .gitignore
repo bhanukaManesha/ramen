@@ -4,3 +4,4 @@
 *.pth
 *.txt
 .idea
+.python-version
