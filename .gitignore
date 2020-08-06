@@ -5,3 +5,5 @@
 *.txt
 .idea
 .python-version
+dataset
+.DS_Store
