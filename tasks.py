@@ -3,17 +3,17 @@ import glob
 from fabric import Connection
 from invoke import task
 
-HOST        = 'ec2-54-179-149-45.ap-southeast-1.compute.amazonaws.com'
+HOST        = 'ec2-3-0-139-199.ap-southeast-1.compute.amazonaws.com'
 USER        = 'ubuntu'
 ROOT        = 'ramen'
 TBPORT      =  6006
 REMOTE      = '{user}@{host}:{root}'.format(user=USER, host=HOST, root=ROOT)
-VENV        = 'tensorflow2_p36'
+VENV        = 'pytorch_p36'
 MODEL       = 'models'
 OUTPUT      = 'output_tests'
 LOGS        = 'logs'
 DATA        = 'data'
-DATASET_LOCATION = 'honours-datasets/ramen/datasets'
+DATASET_LOCATION = 'honours-datasets/ramen/dataset'
 GIT_REPO = 'https://github.com/bhanukaManesha/ramen.git'
 
 PYTHON_SCRIPTS = [
@@ -63,22 +63,28 @@ def killpython(ctx):
 
 @task(pre=[connect], post=[close])
 def setup(ctx):
+    # ctx.conn.run('sudo apt install -y dtach')
     ctx.conn.run('curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"')
     ctx.conn.run('unzip awscliv2.zip')
     ctx.conn.run('sudo ./aws/install')
     ctx.conn.run('git clone {}'.format(GIT_REPO))
-
-    ctx.conn.run('mkdir -p {}'.format(ROOT))
-    with ctx.conn.cd(ROOT):
-        ctx.conn.run('sudo apt install -y dtach')
-        ctx.conn.run('aws s3 sync s3://{} .'.format(DATASET_LOCATION))
-
     # PIP
     ctx.conn.put('requirements.in', remote='{}/requirements.in'.format(ROOT))
     with ctx.conn.cd(ROOT):
         with ctx.conn.prefix('source activate {}'.format(VENV)):
             ctx.conn.run('pip install -U pip')
             ctx.conn.run('pip install -U -r requirements.in')
+
+    with ctx.conn.cd(ROOT):
+        ctx.conn.run('aws s3 cp s3://{} . --recursive'.format(DATASET_LOCATION))
+
+
+
+@task(pre=[connect], post=[close])
+def getfroms3(ctx):
+    with ctx.conn.cd(ROOT):
+        ctx.conn.run('aws s3 cp s3://{} . --recursive'.format(DATASET_LOCATION))
+
 
 @task
 def push(ctx, model=''):
