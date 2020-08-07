@@ -11,8 +11,8 @@ from models import models
 from train import train
 import math
 import vqa_utils
-from models.rubi import RUBiNet
-from criterion.rubi_criterion import RUBiCriterion
+# from models.rubi import RUBiNet
+# from criterion.rubi_criterion import RUBiCriterion
 
 
 def parse_args():
