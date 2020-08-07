@@ -3,3 +3,4 @@ torch
 torch-vision
 fabric
 invoke
+h5py
