@@ -2,9 +2,9 @@
 
 source scripts/common.sh
 
-DATASET=VQA2
-DATA_ROOT=/hdd/robik/${DATASET}
-RESULTS_ROOT=/hdd/robik/${DATASET}_results
+DATASET=dataset
+DATA_ROOT=/home/ubuntu/ramen/${DATASET}
+RESULTS_ROOT=/home/ubuntu/ramen/${DATASET}_results
 python preprocess/tsv_to_hdf5.py --data_root ${DATA_ROOT} --split trainval
 python preprocess/tsv_to_hdf5.py --data_root ${DATA_ROOT} --split test2015
 
