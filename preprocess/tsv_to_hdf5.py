@@ -18,9 +18,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import base64
 import csv
 import h5py
-from six.moves import cPickle
 import numpy as np
-import utils
 import argparse
 import json
 csv.field_size_limit(sys.maxsize)
