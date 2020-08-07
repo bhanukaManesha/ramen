@@ -4,14 +4,14 @@ source scripts/common.sh
 cd ${PROJECT_ROOT}
 
 DATA_SET=VQA2
-DATA_ROOT=/hdd/robik/${DATA_SET}
+DATA_ROOT=/home/ubuntu/ramen/dataset/${DATA_SET}
 
 # Create dictionary and compute GT answer scores
-#python preprocess/create_dictionary.py --data_root ${DATA_ROOT}
-#python preprocess/compute_softscore.py --data_root ${DATA_ROOT} --min_occurrence 9
+python preprocess/create_dictionary.py --data_root ${DATA_ROOT}
+python preprocess/compute_softscore.py --data_root ${DATA_ROOT} --min_occurrence 9
 
 # Train the model
-RESULTS_ROOT=/hdd/robik/${DATA_SET}_results
+RESULTS_ROOT=/home/ubuntu/ramen/dataset/${DATASET}_results
 mkdir -p ${RESULTS_ROOT}
 MODEL=Ramen
 EXPT_NAME=${MODEL}_${DATA_SET}
