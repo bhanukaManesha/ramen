@@ -13,7 +13,7 @@ MODEL       = 'models'
 OUTPUT      = 'output_tests'
 LOGS        = 'logs'
 DATA        = 'data'
-DATASET_LOCATION = 'honours-datasets/ramen/dataset'
+DATASET_LOCATION = 'honours-datasets/dataset'
 GIT_REPO = 'https://github.com/bhanukaManesha/ramen.git'
 
 PYTHON_SCRIPTS = [
@@ -25,17 +25,12 @@ PYTHON_SCRIPTS = [
 ]
 
 ALL = [
-    'common.py',
-    'generator.py',
-    'test.py',
-    'train.py',
+    'scripts',
+    'preprocess',
     'models',
-    'data',
-    'lib',
-    'logs'
+    'run_network.py',
+    'dataset.py'
 ]
-
-
 
 @task
 def connect(ctx):
@@ -60,7 +55,6 @@ def killpython(ctx):
 
 
 # Setup the environment
-
 @task(pre=[connect], post=[close])
 def setup(ctx):
     # ctx.conn.run('sudo apt install -y dtach')
@@ -76,22 +70,26 @@ def setup(ctx):
             ctx.conn.run('pip install -U -r requirements.in')
 
     with ctx.conn.cd(ROOT):
-        ctx.conn.run('aws s3 cp s3://{} . --recursive'.format(DATASET_LOCATION))
+        ctx.conn.run('aws s3 sync s3://{} dataset/'.format(DATASET_LOCATION))
 
 
 
 @task(pre=[connect], post=[close])
 def getfroms3(ctx):
     with ctx.conn.cd(ROOT):
-        ctx.conn.run('aws s3 cp s3://{} . --recursive'.format(DATASET_LOCATION))
+        ctx.conn.run('aws s3 sync s3://{} dataset/'.format(DATASET_LOCATION))
 
+@task(pre=[connect], post=[close])
+def pushtos3(ctx):
+    with ctx.conn.cd(ROOT):
+        ctx.conn.run('aws s3 sync dataset/ s3://{}'.format(DATASET_LOCATION))
 
 @task
 def push(ctx, model=''):
     ctx.run('rsync -rv --progress {files} {remote}'.format(files=' '.join(ALL), remote=REMOTE))
-    model = sorted([fp for fp in glob.glob('models/*') if model and model in fp], reverse=True)
-    if model:
-        ctx.run('rsync -rv {folder}/ {remote}/{folder}'.format(remote=REMOTE, folder=model[0]))
+    # model = sorted([fp for fp in glob.glob('models/*') if model and model in fp], reverse=True)
+    # if model:
+    #     ctx.run('rsync -rv {folder}/ {remote}/{folder}'.format(remote=REMOTE, folder=model[0]))
 
 @task
 def pulldata(ctx):
