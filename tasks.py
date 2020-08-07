@@ -82,7 +82,7 @@ def getfroms3(ctx):
 @task(pre=[connect], post=[close])
 def pushtos3(ctx):
     with ctx.conn.cd(ROOT):
-        ctx.conn.run('aws s3 sync dataset/ s3://{}'.format(DATASET_LOCATION))
+        ctx.conn.run('aws s3 sync dataset/ s3://{} --delete'.format(DATASET_LOCATION))
 
 @task
 def push(ctx, model=''):
