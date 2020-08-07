@@ -50,6 +50,7 @@ if __name__ == '__main__':
     train_data_file = f'{args.data_root}/features/{output_split}.hdf5'
     h5_file = h5py.File(train_data_file, "w")
     image_ids_map = {'image_id_to_ix': {}, 'ix_to_image_id': {}}
+    print('counting number of images...')
     num_images = count(infile, FIELDNAMES)
     # num_images = 2/
     print(f"Num images {num_images}")

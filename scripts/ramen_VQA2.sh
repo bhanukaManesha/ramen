@@ -7,8 +7,8 @@ DATA_SET=VQA2
 DATA_ROOT=/home/ubuntu/ramen/dataset/${DATA_SET}
 
 # Create dictionary and compute GT answer scores
-python preprocess/create_dictionary.py --data_root ${DATA_ROOT}
-python preprocess/compute_softscore.py --data_root ${DATA_ROOT} --min_occurrence 9
+#python preprocess/create_dictionary.py --data_root ${DATA_ROOT}
+#python preprocess/compute_softscore.py --data_root ${DATA_ROOT} --min_occurrence 9
 
 # Train the model
 RESULTS_ROOT=/home/ubuntu/ramen/dataset/${DATASET}_results
