@@ -24,7 +24,7 @@ python -u run_network.py \
 --model ${MODEL} \
 --spatial_feature_type mesh \
 --spatial_feature_length 16 \
---h5_prefix use_split > ${RESULTS_ROOT}/${EXPT_NAME}.log
+--h5_prefix use_split 2>&1 | tee ${RESULTS_ROOT}/${EXPT_NAME}.log
 
 #--words_dropout 0.5 \
 #--question_dropout_after_rnn 0.5 \
