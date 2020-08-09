@@ -6,7 +6,7 @@ DATASET=dataset
 DATA_ROOT=${PROJECT_ROOT}/${DATASET}
 RESULTS_ROOT=${PROJECT_ROOT}/${DATASET}_results
 #python preprocess/tsv_to_hdf5.py --data_root ${DATA_ROOT} --split trainval
-python preprocess/tsv_to_hdf5.py --data_root ${DATA_ROOT} --split test2015
+#python preprocess/tsv_to_hdf5.py --data_root ${DATA_ROOT} --split test2015
 
 ln -s ${DATA_ROOT}/features/trainval.hdf5 ${DATA_ROOT}/features/train.hdf5
 ln -s ${DATA_ROOT}/features/trainval.hdf5 ${DATA_ROOT}/features/val.hdf5

@@ -3,7 +3,7 @@ import glob
 from fabric import Connection
 from invoke import task
 
-HOST        = 'ec2-54-179-125-70.ap-southeast-1.compute.amazonaws.com'
+HOST        = 'ec2-18-138-242-45.ap-southeast-1.compute.amazonaws.com'
 STORAGE     = '172.31.29.157'
 USER        = 'ubuntu'
 ROOT        = '/mnt/efs/ramen'
