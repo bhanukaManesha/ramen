@@ -9,15 +9,27 @@ def convert_from_clevr_to_vqa_format(data_root, split):
     qns = clevr_file['questions']
     vqa_qns = []
     vqa_annotations = []
+
+    count = 0
+
     for qn in qns:
-        vqa_qn = {
-            'question': qn['question'],
-            'question_id': qn['question_index'],
-            'image_id': qn['image_index']
-        }
+        try:
+            vqa_qn = {
+                'question': qn['question'],
+                'question_id': qn['question_index'],
+                'image_id': qn['image_index']
+            }
+        except KeyError:
+            vqa_qn = {
+                'question': qn['question'],
+                'question_id': count,
+                'image_id': qn['image_index']
+            }
+            count += 1
+
         vqa_ann = {
-            'image_id': qn['image_index'],
-            'question_id': qn['question_index']
+            'image_id': vqa_qn['image_id'],
+            'question_id': vqa_qn['question_id']
         }
 
         if 'test' not in split:
