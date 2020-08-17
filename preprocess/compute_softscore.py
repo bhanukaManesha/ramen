@@ -309,6 +309,7 @@ if __name__ == '__main__':
         val_questions = val_questions['questions']
 
     answers = train_answers + val_answers
+
     # occurence = filter_answers(answers, 9)
     if args.top_k is not None:
         occurrence = filter_top_k_answers(train_answers, top_k=args.top_k)
@@ -324,4 +325,5 @@ if __name__ == '__main__':
         fixed_score=None
     compute_target(train_answers, ans2label, 'train', cache_root=features_path, fixed_score=fixed_score)
     compute_target(val_answers, ans2label, 'val', cache_root=features_path, fixed_score=fixed_score)
+
     print("Computed softscore!")

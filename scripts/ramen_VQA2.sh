@@ -4,14 +4,14 @@ source scripts/common.sh
 cd ${PROJECT_ROOT}
 
 DATA_SET=VQA2
-DATA_ROOT=/home/ubuntu/ramen/dataset/${DATA_SET}
+DATA_ROOT=${PROJECT_ROOT}/dataset/${DATA_SET}
 
 # Create dictionary and compute GT answer scores
 #python preprocess/create_dictionary.py --data_root ${DATA_ROOT}
 #python preprocess/compute_softscore.py --data_root ${DATA_ROOT} --min_occurrence 9
 
 # Train the model
-RESULTS_ROOT=/home/ubuntu/ramen/dataset/${DATASET}_results
+RESULTS_ROOT=${PROJECT_ROOT}/dataset/${DATA_SET}/${DATA_SET}_results
 mkdir -p ${RESULTS_ROOT}
 MODEL=Ramen
 EXPT_NAME=${MODEL}_${DATA_SET}
@@ -25,4 +25,4 @@ python -u run_network.py \
 --test_split test_dev \
 --words_dropout 0.5 \
 --question_dropout_after_rnn 0.5 \
---h5_prefix use_split > ${RESULTS_ROOT}/${EXPT_NAME}.log
+--h5_prefix use_split 2>&1 | tee ${RESULTS_ROOT}/${EXPT_NAME}.log
