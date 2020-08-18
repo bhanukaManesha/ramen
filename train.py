@@ -8,6 +8,7 @@ from torch.autograd import Variable
 
 from vqa_utils import VqaUtils, PerTypeMetric
 from metrics import Metrics, accumulate_metrics
+from tqdm import tqdm
 import numpy as np
 
 
@@ -94,7 +95,7 @@ def train(model, train_loader, val_loader, num_epochs, optimizer, criterion, arg
 
         if not args.test:
             for i, (visual_features, boxes, question_features, answers, question_types, question_ids,
-                    question_lengths) in enumerate(train_loader):
+                    question_lengths) in enumerate(tqdm(train_loader)):
                 visual_features = Variable(visual_features.float()).cuda()
                 boxes = Variable(boxes.float()).cuda()
                 question_features = Variable(question_features).cuda()
