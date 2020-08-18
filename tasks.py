@@ -7,6 +7,7 @@ HOST        = 'ec2-13-229-58-15.ap-southeast-1.compute.amazonaws.com'
 STORAGE     = '172.31.43.166'
 USER        = 'ubuntu'
 ROOT        = '/mnt/efs/ramen'
+PROJECT_NAME= 'ramen'
 TBPORT      =  6006
 REMOTE      = '{user}@{host}:{root}'.format(user=USER, host=HOST, root=ROOT)
 VENV        = 'pytorch_p36'
@@ -89,15 +90,19 @@ def clean(ctx):
 @task(pre=[connect], post=[close])
 def train(ctx, model=''):
     ctx.run('rsync -rv --progress {files} {remote}'.format(files=' '.join(ALL), remote=REMOTE))
-    model = sorted([fp for fp in glob.glob('models/*') if model and model in fp], reverse=True)
-    if model:
-        ctx.run('rsync -rv {folder}/ {remote}/{folder}'.format(remote=REMOTE, folder=model[0]))
-
     with ctx.conn.cd(ROOT):
-        with ctx.conn.prefix('source activate tensorflow2_p36'):
-            ctx.conn.run('dtach -A /tmp/{} python train.py -e 0'.format(ROOT), pty=True)
+        with ctx.conn.prefix('source activate pytorch_p36'):
+            ctx.conn.run('dtach -A /tmp/{} ./scripts/ramen_VQA2.sh'.format(PROJECT_NAME), pty=True)
+
+
+@task(pre=[connect], post=[close])
+def test(ctx, model=''):
+    ctx.run('rsync -rv --progress {files} {remote}'.format(files=' '.join(ALL), remote=REMOTE))
+    with ctx.conn.cd(ROOT):
+        with ctx.conn.prefix('source activate pytorch_p36'):
+            ctx.conn.run('dtach -A /tmp/{} ./scripts/ramen_VQA2_test.sh'.format(PROJECT_NAME), pty=True)
 
 
 @task(pre=[connect], post=[close])
 def resume(ctx):
-    ctx.conn.run('dtach -a /tmp/{}'.format(ROOT), pty=True)
+    ctx.conn.run('dtach -a /tmp/{}'.format(PROJECT_NAME), pty=True)
