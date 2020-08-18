@@ -90,7 +90,7 @@ def parse_args():
 
     args.dataroot = args.data_root
     if args.results_path is None:
-        args.results_path = args.dataroot + '_results'
+        args.results_path = f'{args.dataroot}/{args.data_set}_results'
     args.answers_available = bool(args.answers_available)
 
     # Handle experiment save/resume
@@ -146,6 +146,7 @@ def train_model():
     if not args.test:
         train_dset = VQAFeatureDataset(args.train_split, dictionary, data_root=args.dataroot, args=args)
     else:
+        print("Test Mode enabled.")
         train_dset = None
     val_dset = VQAFeatureDataset(args.test_split, dictionary, data_root=args.dataroot, args=args)
 
