@@ -3,7 +3,7 @@ import glob
 from fabric import Connection
 from invoke import task
 
-HOST        = 'ec2-13-229-58-15.ap-southeast-1.compute.amazonaws.com'
+HOST        = 'ec2-54-254-159-96.ap-southeast-1.compute.amazonaws.com'
 STORAGE     = '172.31.43.166'
 USER        = 'ubuntu'
 ROOT        = '/mnt/efs/ramen'
@@ -23,7 +23,8 @@ ALL = [
     'preprocess',
     'models',
     'run_network.py',
-    'dataset.py'
+    'dataset.py',
+    'train.py'
 ]
 
 @task
@@ -62,6 +63,11 @@ def setup(ctx):
 def fix(ctx):
     # locked error
     ctx.conn.run('sudo killall apt apt-get')
+
+@task(pre=[connect], post=[close])
+def gpustats(ctx):
+    with ctx.conn.prefix('source activate pytorch_p36'):
+        ctx.conn.run('watch -n0.1 nvidia-smi', pty=True)
 
 @task
 def push(ctx, model=''):
