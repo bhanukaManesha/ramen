@@ -3,7 +3,7 @@ import glob
 from fabric import Connection
 from invoke import task
 
-HOST        = 'ec2-13-212-20-174.ap-southeast-1.compute.amazonaws.com'
+HOST        = 'ec2-13-229-58-15.ap-southeast-1.compute.amazonaws.com'
 STORAGE     = '172.31.43.166'
 USER        = 'ubuntu'
 ROOT        = '/mnt/efs/ramen'
@@ -50,13 +50,17 @@ def killpython(ctx):
 # Setup the environment
 @task(pre=[connect], post=[close])
 def setup(ctx):
-    # locked error
     ctx.conn.run('sudo apt-get update')
     ctx.conn.run('sudo apt install -y dtach')
     ctx.conn.run('sudo apt-get install nfs-common -y')
     with ctx.conn.cd('/mnt/'):
         ctx.conn.run('sudo mkdir efs')
         ctx.conn.run(f'sudo mount -t nfs4 {STORAGE}:/ /mnt/efs')
+
+@task(pre=[connect], post=[close])
+def fix(ctx):
+    # locked error
+    ctx.conn.run('sudo killall apt apt-get')
 
 @task
 def push(ctx, model=''):
@@ -80,3 +84,20 @@ def clean(ctx):
     ctx.conn.run('rm -rf {}/models'.format(ROOT), pty=True)
     ctx.conn.run('rm -rf {}/output_tests'.format(ROOT), pty=True)
     ctx.conn.run('rm -rf {}/output_renders'.format(ROOT), pty=True)
+
+
+@task(pre=[connect], post=[close])
+def train(ctx, model=''):
+    ctx.run('rsync -rv --progress {files} {remote}'.format(files=' '.join(ALL), remote=REMOTE))
+    model = sorted([fp for fp in glob.glob('models/*') if model and model in fp], reverse=True)
+    if model:
+        ctx.run('rsync -rv {folder}/ {remote}/{folder}'.format(remote=REMOTE, folder=model[0]))
+
+    with ctx.conn.cd(ROOT):
+        with ctx.conn.prefix('source activate tensorflow2_p36'):
+            ctx.conn.run('dtach -A /tmp/{} python train.py -e 0'.format(ROOT), pty=True)
+
+
+@task(pre=[connect], post=[close])
+def resume(ctx):
+    ctx.conn.run('dtach -a /tmp/{}'.format(ROOT), pty=True)
