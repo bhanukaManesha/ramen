@@ -4,6 +4,7 @@ source scripts/common.sh
 cd ${PROJECT_ROOT}
 
 DATA_SET=VQA2
+TEST_DATASET=VQA2
 DATA_ROOT=${PROJECT_ROOT}/dataset/${DATA_SET}
 
 # Create dictionary and compute GT answer scores
@@ -14,7 +15,7 @@ DATA_ROOT=${PROJECT_ROOT}/dataset/${DATA_SET}
 RESULTS_ROOT=${PROJECT_ROOT}/dataset/${DATA_SET}/${DATA_SET}_results
 mkdir -p ${RESULTS_ROOT}
 MODEL=Ramen
-EXPT_NAME=${MODEL}_${DATA_SET}
+EXPT_NAME=${MODEL}_${DATA_SET}_${TEST_DATASET}
 
 python -u run_network.py \
 --data_set ${DATA_SET} \
