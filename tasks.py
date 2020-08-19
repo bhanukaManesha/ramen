@@ -69,6 +69,12 @@ def gpustats(ctx):
     with ctx.conn.prefix('source activate pytorch_p36'):
         ctx.conn.run('watch -n0.1 nvidia-smi', pty=True)
 
+@task(pre=[connect], post=[close])
+def cpustats(ctx):
+    with ctx.conn.prefix('source activate pytorch_p36'):
+        ctx.conn.run('htop', pty=True)
+
+
 @task
 def push(ctx, model=''):
     ctx.run('rsync -rv --progress {files} {remote}'.format(files=' '.join(ALL), remote=REMOTE))
