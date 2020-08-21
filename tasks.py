@@ -3,7 +3,7 @@ import glob
 from fabric import Connection
 from invoke import task
 
-HOST        = 'ec2-54-254-159-96.ap-southeast-1.compute.amazonaws.com'
+HOST        = 'ec2-13-212-60-222.ap-southeast-1.compute.amazonaws.com'
 STORAGE     = '172.31.43.166'
 USER        = 'ubuntu'
 ROOT        = '/mnt/efs/ramen'
@@ -76,21 +76,14 @@ def cpustats(ctx):
 
 
 @task
-def push(ctx, model=''):
+def push(ctx):
     ctx.run('rsync -rv --progress {files} {remote}'.format(files=' '.join(ALL), remote=REMOTE))
-    # model = sorted([fp for fp in glob.glob('models/*') if model and model in fp], reverse=True)
-    # if model:
-    #     ctx.run('rsync -rv {folder}/ {remote}/{folder}'.format(remote=REMOTE, folder=model[0]))
-
-@task
-def pulldata(ctx):
-    ctx.run('rsync -rv --progress {remote}/{folder}/ {folder}'.format(remote=REMOTE, folder=DATA))
 
 @task
 def pull(ctx):
-    ctx.run('rsync -rv --progress {remote}/{folder}/ {folder}'.format(remote=REMOTE, folder=MODEL))
-    ctx.run('rsync -rv --progress {remote}/{folder}/ {folder}'.format(remote=REMOTE, folder=OUTPUT))
-    ctx.run('rsync -rv --progress {remote}/{folder}/ {folder}'.format(remote=REMOTE, folder=LOGS))
+    for file in ALL:
+        ctx.run(f'rsync -rv --progress {REMOTE}/{file} .')
+
 
 @task(pre=[connect], post=[close])
 def clean(ctx):
@@ -101,7 +94,7 @@ def clean(ctx):
 
 @task(pre=[connect], post=[close])
 def train(ctx, model=''):
-    ctx.run('rsync -rv --progress {files} {remote}'.format(files=' '.join(ALL), remote=REMOTE))
+    # ctx.run('rsync -rv --progress {files} {remote}'.format(files=' '.join(ALL), remote=REMOTE))
     with ctx.conn.cd(ROOT):
         with ctx.conn.prefix('source activate pytorch_p36'):
             ctx.conn.run('dtach -A /tmp/{} ./scripts/ramen_VQA2.sh'.format(PROJECT_NAME), pty=True)
@@ -109,7 +102,7 @@ def train(ctx, model=''):
 
 @task(pre=[connect], post=[close])
 def test(ctx, model=''):
-    ctx.run('rsync -rv --progress {files} {remote}'.format(files=' '.join(ALL), remote=REMOTE))
+    # ctx.run('rsync -rv --progress {files} {remote}'.format(files=' '.join(ALL), remote=REMOTE))
     with ctx.conn.cd(ROOT):
         with ctx.conn.prefix('source activate pytorch_p36'):
             ctx.conn.run('dtach -A /tmp/{} ./scripts/ramen_VQA2_test.sh'.format(PROJECT_NAME), pty=True)
