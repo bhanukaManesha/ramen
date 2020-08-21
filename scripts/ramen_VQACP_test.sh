@@ -13,7 +13,7 @@ MODEL=Ramen
 RESUME_EXPT_NAME=${MODEL}_${DATA_SET}_dropout
 EXPT_NAME=${RESUME_EXPT_NAME}_test
 
-CUDA_VISIBLE_DEVICES=2 python -u run_network.py \
+python -u run_network.py \
 --data_set ${DATA_SET} \
 --data_root ${DATA_ROOT} \
 --expt_name ${EXPT_NAME} \
