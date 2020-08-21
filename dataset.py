@@ -143,12 +143,12 @@ def _load_dataset(dataroot, name, img_id2val, label2ans):
         entries = []
         for question in questions:
             answer = qn_id_to_ans[str(question['question_id'])].copy()
-            # if str(question['question_id']) in qn_id_to_ans:
-            #     answer = qn_id_to_ans[str(question['question_id'])].copy()
-            # else:
-            #     answer_not_found += 1
-            #     answer = {'question_id': question['question_id'], 'image_id': question['image_id'], 'scores': [],
-            #               'labels': []}
+            if str(question['question_id']) in qn_id_to_ans:
+                answer = qn_id_to_ans[str(question['question_id'])].copy()
+            else:
+                answer_not_found += 1
+                answer = {'question_id': question['question_id'], 'image_id': question['image_id'], 'scores': [],
+                          'labels': []}
             utils.assert_eq(question['question_id'], answer['question_id'])
             utils.assert_eq(question['image_id'], answer['image_id'])
             img_id = question['image_id']
