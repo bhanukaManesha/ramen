@@ -19,6 +19,9 @@ DATASET_LOCATION = 'honours-datasets/dataset'
 GIT_REPO = 'https://github.com/bhanukaManesha/ramen.git'
 
 ALL = [
+    'tasks.py',
+    'requirements.in',
+    '.git',
     'scripts',
     'preprocess',
     'models',
