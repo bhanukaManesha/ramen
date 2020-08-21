@@ -7,10 +7,6 @@ DATA_SET=VQA2
 TEST_DATASET=VQA2
 DATA_ROOT=${PROJECT_ROOT}/dataset/${DATA_SET}
 
-# Create dictionary and compute GT answer scores
-#python preprocess/create_dictionary.py --data_root ${DATA_ROOT}
-#python preprocess/compute_softscore.py --data_root ${DATA_ROOT} --min_occurrence 9
-
 # Train the model
 RESULTS_ROOT=${PROJECT_ROOT}/dataset/${DATA_SET}/${DATA_SET}_results
 mkdir -p ${RESULTS_ROOT}
