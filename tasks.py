@@ -110,7 +110,8 @@ def clean(ctx):
     ctx.conn.run('rm -rf {}/output_tests'.format(ROOT), pty=True)
     ctx.conn.run('rm -rf {}/output_renders'.format(ROOT), pty=True)
 
-def move_results_back_to_efs(ctx):
+@task(pre=[connect], post=[close])
+def moveresultsbacktoefs(ctx):
     with ctx.conn.cd('/mnt/efs/ramen/'):
         ctx.conn.run(f'sudo rsync -r --progress /home/ubuntu/ramen/dataset/{TRAIN_DATASET}/{TRAIN_DATASET}_results {ROOT}/dataset/{TRAIN_DATASET}/')
 
