@@ -185,10 +185,10 @@ def train_model():
         print("Resumed!")
 
     if not args.test:
-        train_loader = DataLoader(train_dset, batch_size, shuffle=True, num_workers=21, pin_memory=True)
+        train_loader = DataLoader(train_dset, batch_size, shuffle=True, num_workers=42, pin_memory=True)
     else:
         train_loader = None
-    eval_loader = DataLoader(val_dset, batch_size, shuffle=False, num_workers=21, pin_memory=True)
+    eval_loader = DataLoader(val_dset, batch_size, shuffle=False, num_workers=42, pin_memory=True)
 
     if args.apply_rubi:
         criterion = RUBiCriterion()
