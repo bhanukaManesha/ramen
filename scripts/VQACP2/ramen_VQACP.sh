@@ -22,7 +22,6 @@ python -u run_network.py \
 --data_root ${DATA_ROOT} \
 --expt_name ${EXPT_NAME} \
 --model ${MODEL} \
---batch 128 \
 --words_dropout 0.5 \
 --question_dropout_after_rnn 0.5 \
 --h5_prefix use_split 2>&1 | tee ${RESULTS_ROOT}/${EXPT_NAME}.log
