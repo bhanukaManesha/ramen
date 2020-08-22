@@ -22,7 +22,6 @@ python -u run_network.py \
 --data_root ${DATA_ROOT} \
 --expt_name ${EXPT_NAME} \
 --model ${MODEL} \
---batch 128 \
 --train_split trainval \
 --test_split test_dev \
 --words_dropout 0.5 \
