@@ -120,8 +120,11 @@ def train(ctx, model=''):
     # ctx.run('rsync -rv --progress {files} {remote}'.format(files=' '.join(ALL), remote=REMOTE))
     with ctx.conn.cd('/mnt/efs/ramen/'):
         ctx.conn.run('sudo rsync -ar --progress --exclude dataset . /home/ubuntu/ramen/')
-        # ctx.conn.run(f'sudo rsync -r --copy-links --ignore-existing -h --progress dataset/{TRAIN_DATASET} /home/ubuntu/ramen/dataset/')
         ctx.conn.run(f'sudo rsync -r --copy-links -h --progress dataset/{TRAIN_DATASET} /home/ubuntu/ramen/dataset/')
+
+    with ctx.conn.cd('/home/ubuntu/ramen/'):
+        ctx.conn.run(f'sudo chmod -R 777 .')
+        ctx.conn.run(f'sudo chmod -R +x .')
 
     with ctx.conn.cd(TRAINROOT):
         with ctx.conn.prefix('source activate pytorch_p36'):
