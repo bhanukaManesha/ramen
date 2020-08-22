@@ -31,8 +31,8 @@ ALL = [
 
 
 
-TRAIN_DATASET = 'VQACP'
-TEST_DATASET = 'VQACP'
+TRAIN_DATASET = 'CVQA'
+TEST_DATASET = 'CVQA'
 MODEL_NAME = 'ramen'
 
 
@@ -120,7 +120,7 @@ def train(ctx, model=''):
     # ctx.run('rsync -rv --progress {files} {remote}'.format(files=' '.join(ALL), remote=REMOTE))
     with ctx.conn.cd('/mnt/efs/ramen/'):
         ctx.conn.run('sudo rsync -r --progress --exclude dataset . /home/ubuntu/ramen/')
-        # ctx.conn.run(f'sudo rsync -r --copy-links -h --progress dataset/{DATASET} /home/ubuntu/ramen/dataset/')
+        ctx.conn.run(f'sudo rsync -r --copy-links -h --progress dataset/{TRAIN_DATASET} /home/ubuntu/ramen/dataset/')
 
     with ctx.conn.cd(TRAINROOT):
         with ctx.conn.prefix('source activate pytorch_p36'):
