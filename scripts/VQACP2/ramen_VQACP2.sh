@@ -3,8 +3,8 @@ set -e
 source scripts/common.sh
 cd ${PROJECT_ROOT}
 
-DATA_SET=VQACP
-TEST_DATASET=VQACP
+DATA_SET=VQACP2
+TEST_DATASET=VQACP2
 DATA_ROOT=${PROJECT_ROOT}/dataset/${DATA_SET}
 
 # Create dictionary and compute GT answer scores
