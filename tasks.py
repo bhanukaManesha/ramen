@@ -3,7 +3,7 @@ import glob
 from fabric import Connection
 from invoke import task
 
-HOST        = 'ec2-54-255-176-171.ap-southeast-1.compute.amazonaws.com'
+HOST        = 'ec2-54-179-146-176.ap-southeast-1.compute.amazonaws.com'
 STORAGE     = '172.31.43.166'
 USER        = 'ubuntu'
 ROOT        = '/mnt/efs/ramen'
@@ -31,8 +31,8 @@ ALL = [
 
 
 
-TRAIN_DATASET = 'VQACP2'
-TEST_DATASET = 'VQACP2'
+TRAIN_DATASET = 'CLEVR'
+TEST_DATASET = 'CLEVR'
 MODEL_NAME = 'ramen'
 
 
@@ -72,6 +72,10 @@ def setup(ctx):
     with ctx.conn.cd(f'/home/{USER}'):
         ctx.conn.run('sudo mkdir ramen')
 
+    with ctx.conn.cd('/home/ubuntu/ramen/'):
+        ctx.conn.run(f'sudo chmod -R 777 .')
+        ctx.conn.run(f'sudo chmod -R +x .')
+
     with ctx.conn.cd('/mnt/'):
         ctx.conn.run('sudo rsync -ar --exclude dataset /home/ubuntu/ramen/')
         ctx.conn.run('sudo mkdir /home/ubuntu/ramen/dataset/')
@@ -103,12 +107,23 @@ def pull(ctx):
     for file in ALL:
         ctx.run(f'rsync -rv --progress {REMOTE}/{file} .')
 
+@task
+def pulllogs(ctx):
+    ctx.run(f'rsync -zamrv --progress --include="*/" --include="*.log" --exclude="*" {REMOTE}/dataset/ logs/')
 
-# @task(pre=[connect], post=[close])
-# def clean(ctx):
-#     REMOVE_DATASET_NAME = 'VQACP'
-#     with ctx.conn.cd('/home/ubuntu/ramen/dataset/'):
-#         ctx.conn.run(f'sudo rm -rfv {REMOVE_DATASET_NAME}', pty=True)
+
+
+@task(pre=[connect], post=[close])
+def clean(ctx):
+    REMOVE_DATASET_NAME = 'VQACP2'
+    with ctx.conn.cd('/home/ubuntu/ramen/dataset/'):
+        ctx.conn.run(f'sudo rm -rfv {REMOVE_DATASET_NAME}', pty=True)
+
+@task(pre=[connect], post=[close])
+def cleanresults(ctx):
+    REMOVE_DATASET_NAME = 'CLEVR'
+    with ctx.conn.cd(f'/home/ubuntu/ramen/dataset/{REMOVE_DATASET_NAME}/'):
+        ctx.conn.run(f'sudo rm -rfv {REMOVE_DATASET_NAME}_results', pty=True)
 
 @task(pre=[connect], post=[close])
 def moveresultsbacktoefs(ctx):
@@ -117,10 +132,13 @@ def moveresultsbacktoefs(ctx):
 
 @task(pre=[connect], post=[close])
 def train(ctx, model=''):
-    # ctx.run('rsync -rv --progress {files} {remote}'.format(files=' '.join(ALL), remote=REMOTE))
+    ctx.run('rsync -rv --progress {files} {remote}'.format(files=' '.join(ALL), remote=REMOTE))
+
     with ctx.conn.cd('/mnt/efs/ramen/'):
         ctx.conn.run('sudo rsync -ar --progress --exclude dataset . /home/ubuntu/ramen/')
-        ctx.conn.run(f'sudo rsync -r --copy-links -h --progress dataset/{TRAIN_DATASET} /home/ubuntu/ramen/dataset/')
+
+        # comment if dataset is already present in the home folder
+        # ctx.conn.run(f'sudo rsync -r --copy-links -h --progress dataset/{TRAIN_DATASET} /home/ubuntu/ramen/dataset/')
 
     with ctx.conn.cd('/home/ubuntu/ramen/'):
         ctx.conn.run(f'sudo chmod -R 777 .')
