@@ -172,7 +172,7 @@ def get_question_id_to_question_type(annotations):
 
 
 class VQAFeatureDataset(Dataset):
-    def __init__(self, name, dictionary, data_root, adaptive=False, args=None):
+    def __init__(self, name, dictionary, data_root, adaptive=False, custom_test_dataset=False, args=None):
         super(VQAFeatureDataset, self).__init__()
 
         with open(os.path.join(args.vocab_dir, 'answer_ix_map.json')) as af:
@@ -192,7 +192,11 @@ class VQAFeatureDataset(Dataset):
 
         with open(os.path.join(args.feature_dir, '{}_ids_map.json'.format(h5_name))) as f:
             self.img_id2idx = json.load(f)['image_id_to_ix']
-        h5_path = os.path.join(args.feature_dir, '%s%s.hdf5' % (h5_name, '' if self.adaptive else ''))
+
+        if custom_test_dataset:
+            h5_path = os.path.join(args.test_feature_dir, '%s%s.hdf5' % (h5_name, '' if self.adaptive else ''))
+        else:
+            h5_path = os.path.join(args.feature_dir, '%s%s.hdf5' % (h5_name, '' if self.adaptive else ''))
         self.h5_path = h5_path
 
         print('loading features_path from h5 file')
