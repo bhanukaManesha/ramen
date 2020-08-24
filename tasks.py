@@ -3,7 +3,7 @@ import glob
 from fabric import Connection
 from invoke import task
 
-HOST        = 'ec2-54-179-146-176.ap-southeast-1.compute.amazonaws.com'
+HOST        = 'ec2-18-141-234-241.ap-southeast-1.compute.amazonaws.com'
 STORAGE     = '172.31.43.166'
 USER        = 'ubuntu'
 ROOT        = '/mnt/efs/ramen'
@@ -23,19 +23,18 @@ ALL = [
     'requirements.in',
     'scripts',
     'preprocess',
+    'postprocess'
+    'criterion',
+    'componenets',
+    'charts',
+    'debug',
     'models',
-    'run_network.py',
-    'dataset.py',
-    'train.py'
+    '*.py'
 ]
 
-
-
-TRAIN_DATASET = 'CLEVR'
-TEST_DATASET = 'CLEVR'
+TRAIN_DATASET = 'VQA2'
+TEST_DATASET = 'VQA2'
 MODEL_NAME = 'ramen'
-
-
 
 @task
 def connect(ctx):
@@ -115,7 +114,7 @@ def pulllogs(ctx):
 
 @task(pre=[connect], post=[close])
 def clean(ctx):
-    REMOVE_DATASET_NAME = 'VQACP2'
+    REMOVE_DATASET_NAME = 'CLEVR'
     with ctx.conn.cd('/home/ubuntu/ramen/dataset/'):
         ctx.conn.run(f'sudo rm -rfv {REMOVE_DATASET_NAME}', pty=True)
 
@@ -138,7 +137,7 @@ def train(ctx, model=''):
         ctx.conn.run('sudo rsync -ar --progress --exclude dataset . /home/ubuntu/ramen/')
 
         # comment if dataset is already present in the home folder
-        # ctx.conn.run(f'sudo rsync -r --copy-links -h --progress dataset/{TRAIN_DATASET} /home/ubuntu/ramen/dataset/')
+        ctx.conn.run(f'sudo rsync -r --copy-links -h --progress dataset/{TRAIN_DATASET} /home/ubuntu/ramen/dataset/')
 
     with ctx.conn.cd('/home/ubuntu/ramen/'):
         ctx.conn.run(f'sudo chmod -R 777 .')
