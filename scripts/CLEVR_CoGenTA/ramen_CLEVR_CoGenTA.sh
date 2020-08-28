@@ -3,15 +3,15 @@ set -e
 source scripts/common.sh
 cd ${PROJECT_ROOT}
 
-DATA_SET=CLEVR-CoGenT
-TEST_DATASET=CLEVR-CoGenT
+DATA_SET=CLEVR_CoGenTA
+TEST_DATASET=CLEVR_CoGenTA
 DATA_ROOT=${PROJECT_ROOT}/dataset/${DATA_SET}
 
 # Convert to VQA2-like format
-python -u preprocess/convert_from_clevr_to_vqa_format.py --data_root ${DATA_ROOT}
+#python -u preprocess/convert_from_clevr_to_vqa_format.py --data_root ${DATA_ROOT}
 # Create dictionary and compute GT answer scores
-python preprocess/create_dictionary.py --data_root ${DATA_ROOT}
-python preprocess/compute_softscore.py --data_root ${DATA_ROOT}
+#python preprocess/create_dictionary.py --data_root ${DATA_ROOT}
+#python preprocess/compute_softscore.py --data_root ${DATA_ROOT}
 
 RESULTS_ROOT=${PROJECT_ROOT}/dataset/${DATA_SET}/${DATA_SET}_results
 mkdir -p ${RESULTS_ROOT}
