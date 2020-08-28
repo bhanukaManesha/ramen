@@ -3,7 +3,7 @@ import glob
 from fabric import Connection
 from invoke import task
 
-HOST        = 'ec2-18-141-234-241.ap-southeast-1.compute.amazonaws.com'
+HOST        = 'ec2-13-229-213-71.ap-southeast-1.compute.amazonaws.com'
 STORAGE     = '172.31.43.166'
 USER        = 'ubuntu'
 ROOT        = '/mnt/efs/ramen'
@@ -23,17 +23,17 @@ ALL = [
     'requirements.in',
     'scripts',
     'preprocess',
-    'postprocess'
+    'postprocess',
     'criterion',
-    'componenets',
+    'components',
     'charts',
     'debug',
     'models',
     '*.py'
 ]
 
-TRAIN_DATASET = 'VQA2'
-TEST_DATASET = 'VQA2'
+TRAIN_DATASET = 'CLEVR_CoGenTB'
+TEST_DATASET = 'CLEVR_CoGenTB'
 MODEL_NAME = 'ramen'
 
 @task
@@ -133,19 +133,23 @@ def moveresultsbacktoefs(ctx):
 def train(ctx, model=''):
     ctx.run('rsync -rv --progress {files} {remote}'.format(files=' '.join(ALL), remote=REMOTE))
 
+    # with ctx.conn.cd('/mnt/efs/ramen/'):
+    #     ctx.conn.run('sudo rsync -ar --progress --exclude dataset . /home/ubuntu/ramen/')
+    #
+    #     # comment if dataset is already present in the home folder
+    #     ctx.conn.run(f'sudo rsync -r --copy-links -h --progress dataset/{TRAIN_DATASET} /home/ubuntu/ramen/dataset/')
+
+    # with ctx.conn.cd('/home/ubuntu/ramen/'):
+    #     ctx.conn.run(f'sudo chmod -R 777 .')
+    #     ctx.conn.run(f'sudo chmod -R +x .')
+
+    # with ctx.conn.cd(TRAINROOT):
+    #     with ctx.conn.prefix('source activate pytorch_p36'):
+    #         ctx.conn.run(f'dtach -A /tmp/{PROJECT_NAME} ./scripts/{TRAIN_DATASET}/{MODEL_NAME}_{TEST_DATASET}.sh', pty=True)
+
     with ctx.conn.cd('/mnt/efs/ramen/'):
-        ctx.conn.run('sudo rsync -ar --progress --exclude dataset . /home/ubuntu/ramen/')
-
-        # comment if dataset is already present in the home folder
-        ctx.conn.run(f'sudo rsync -r --copy-links -h --progress dataset/{TRAIN_DATASET} /home/ubuntu/ramen/dataset/')
-
-    with ctx.conn.cd('/home/ubuntu/ramen/'):
-        ctx.conn.run(f'sudo chmod -R 777 .')
-        ctx.conn.run(f'sudo chmod -R +x .')
-
-    with ctx.conn.cd(TRAINROOT):
         with ctx.conn.prefix('source activate pytorch_p36'):
-            ctx.conn.run(f'dtach -A /tmp/{PROJECT_NAME} ./scripts/{TRAIN_DATASET}/{MODEL_NAME}_{TEST_DATASET}.sh', pty=True)
+            ctx.conn.run(f'dtach -A /tmp/{PROJECT_NAME} ./scripts/{TRAIN_DATASET}/{MODEL_NAME}_{TRAIN_DATASET}.sh', pty=True)
 
 
 @task(pre=[connect], post=[close])
