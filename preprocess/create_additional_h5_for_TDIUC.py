@@ -5,14 +5,15 @@ import json
 
 def get_all_image_ids(split):
     img_ids = {}
-    qns = json.load(open(os.path.join(f'/hdd/robik/TDIUC/questions/{split}_questions.json')))['questions']
+    qns = json.load(open(os.path.join(f'/mnt/efs/ramen/dataset/TDIUC/questions/{split}_questions.json')))['questions']
     for q in qns:
         img_ids[q['image_id']] = 1
     return img_ids
 
 
 def get_extra_image_ids(split, img_ids):
-    img_id_to_ix = json.load(open(os.path.join(f'/hdd/robik/TDIUC/features/{split}_ids_map.json')))['image_id_to_ix']
+    img_id_to_ix = json.load(open(os.path.join(f'/mnt/efs/ramen/dataset/features/{split}_ids_map.json')))['image_id_to_ix']
+    # Only 82 images
     extra_img_ids = {}
     for img_id in img_ids:
         if str(img_id) not in img_id_to_ix:
@@ -21,16 +22,16 @@ def get_extra_image_ids(split, img_ids):
 
 
 def create_extra_h5(split, extra_img_ids):
-    target_dir = '/media/robik/TDIUC'
+    target_dir = '/mnt/efs/ramen/dataset'
     extra_ids_map = {
         'image_id_to_ix': {},
         'ix_to_image_id': {}
     }
     with h5py.File(f'{target_dir}/features/{split}_extra.hdf5', 'w') as h:
-        all_features = h5py.File(os.path.join('/media/robik/NATURAL_VQA/bottom-up-attention/all.hdf5'))
+        all_features = h5py.File(f'/mnt/efs/ramen/dataset/features/{split}.hdf5', 'r')
         image_features = all_features.get('image_features')
         spatial_features = all_features.get('spatial_features')
-        all_ids = json.load(open(os.path.join('/media/robik/NATURAL_VQA/bottom-up-attention/all_ids_map.json')))
+        all_ids = json.load(open(os.path.join(f'/mnt/efs/ramen/dataset/features/{split}_ids_map.json')))
         new_ix = 0
         for eid_ix, eid in enumerate(extra_img_ids):
             all_ix = all_ids['image_id_to_ix'][str(eid)]
