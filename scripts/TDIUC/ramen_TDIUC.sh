@@ -12,8 +12,8 @@ DATA_ROOT=${PROJECT_ROOT}/dataset/${DATA_SET}
 # ./tools/generate_tsv.py --split tdiuc_val --cfg experiments/cfgs/faster_rcnn_end2end_resnet.yml --def models/vg/ResNet-101/faster_rcnn_end2end_final/test.prototxt --out valtdiuc_resnet101_faster_rcnn_genome.tsv --net data/faster_rcnn_models/resnet101_faster_rcnn_final.caffemodel
 
 # Create dictionary and compute GT answer scores
-python preprocess/create_dictionary.py --data_root ${DATA_ROOT}
-python preprocess/compute_softscore.py --data_root ${DATA_ROOT}
+#python preprocess/create_dictionary.py --data_root ${DATA_ROOT}
+#python preprocess/compute_softscore.py --data_root ${DATA_ROOT}
 
 # Train the model
 RESULTS_ROOT=${PROJECT_ROOT}/dataset/${DATA_SET}/${DATA_SET}_results
