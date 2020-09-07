@@ -132,8 +132,7 @@ def _load_dataset(dataroot, name, img_id2val, label2ans):
     questions = sorted(questions,
                        key=lambda x: x['question_id'])
     answer_not_found = 0
-
-    if 'test' not in name and 'test_dev' not in name:
+    if 'test' not in name and 'test_dev' not in name and 'val' not in name:
         qn_id_to_ans = {}
         answer_path = os.path.join(dataroot, 'features', '%s_target.json' % name)
         answers = json.load(open(answer_path, 'r'))
@@ -190,12 +189,13 @@ class VQAFeatureDataset(Dataset):
         else:
             h5_name = name
 
-        with open(os.path.join(args.feature_dir, '{}_ids_map.json'.format(h5_name))) as f:
-            self.img_id2idx = json.load(f)['image_id_to_ix']
-
         if custom_test_dataset:
+            with open(os.path.join(args.test_feature_dir, '{}_ids_map.json'.format(h5_name))) as f:
+                self.img_id2idx = json.load(f)['image_id_to_ix']
             h5_path = os.path.join(args.test_feature_dir, '%s%s.hdf5' % (h5_name, '' if self.adaptive else ''))
         else:
+            with open(os.path.join(args.feature_dir, '{}_ids_map.json'.format(h5_name))) as f:
+                self.img_id2idx = json.load(f)['image_id_to_ix']
             h5_path = os.path.join(args.feature_dir, '%s%s.hdf5' % (h5_name, '' if self.adaptive else ''))
         self.h5_path = h5_path
 
@@ -217,21 +217,40 @@ class VQAFeatureDataset(Dataset):
             args.spatial_feature_length)
         self.s_dim = spatials.shape[1 if self.adaptive else 2]
         self.printed = False
-        with open(os.path.join(args.data_root, 'questions', name + "_questions.json")) as qf:
-            if 'test' not in name:
-                annotations = json.load(open(os.path.join(args.data_root, 'questions', name + "_annotations.json")))
-                qid_to_qtype = get_question_id_to_question_type(annotations)
-            else:
-                qid_to_qtype = None
-            print("Loading questions...")
-            qns = json.load(qf)
-            if 'questions' in qns:
-                qns = qns['questions']
-            self.question_map = {}
-            for q in qns:
-                self.question_map[q['question_id']] = q
-                if qid_to_qtype is not None:
-                    q['question_type'] = qid_to_qtype[str(q['question_id'])]
+
+        if custom_test_dataset:
+            with open(os.path.join(args.test_data_root, 'questions', name + "_questions.json")) as qf:
+                if 'test' not in name:
+                    annotations = json.load(open(os.path.join(args.test_data_root, 'questions', name + "_annotations.json")))
+                    qid_to_qtype = get_question_id_to_question_type(annotations)
+                else:
+                    qid_to_qtype = None
+                print("Loading questions...")
+                qns = json.load(qf)
+                if 'questions' in qns:
+                    qns = qns['questions']
+                self.question_map = {}
+                for q in qns:
+                    self.question_map[q['question_id']] = q
+                    if qid_to_qtype is not None:
+                        q['question_type'] = qid_to_qtype[str(q['question_id'])]
+        else:
+            with open(os.path.join(args.data_root, 'questions', name + "_questions.json")) as qf:
+                if 'test' not in name:
+                    annotations = json.load(open(os.path.join(args.data_root, 'questions', name + "_annotations.json")))
+                    qid_to_qtype = get_question_id_to_question_type(annotations)
+                else:
+                    qid_to_qtype = None
+                print("Loading questions...")
+                qns = json.load(qf)
+                if 'questions' in qns:
+                    qns = qns['questions']
+                self.question_map = {}
+                for q in qns:
+                    self.question_map[q['question_id']] = q
+                    if qid_to_qtype is not None:
+                        q['question_type'] = qid_to_qtype[str(q['question_id'])]
+
 
     def tokenize(self, max_length):
         """Tokenizes the questions.

@@ -208,8 +208,12 @@ def train(model, train_loader, val_loader, num_epochs, optimizer, criterion, arg
 #
 def evaluate_by_logits_key(model, dataloader, epoch, criterion, args, val_metrics, logits_key='logits'):
     per_type_metric = PerTypeMetric(epoch=epoch)
-    with open(os.path.join(args.data_root, args.feature_subdir, 'answer_ix_map.json')) as f:
-        answer_ix_map = json.load(f)
+    if args.test:
+        with open(os.path.join(args.test_data_root, args.feature_subdir, 'answer_ix_map.json')) as f:
+            answer_ix_map = json.load(f)
+    else:
+        with open(os.path.join(args.data_root, args.feature_subdir, 'answer_ix_map.json')) as f:
+            answer_ix_map = json.load(f)
 
     all_preds = []
 
@@ -289,8 +293,13 @@ def _internal_evaluation(args,
 
 
 def evaluate(model, dataloader, epoch, criterion, args, val_metrics, val_metrics_rubi=None, val_metrics_q=None):
-    with open(os.path.join(args.data_root, args.feature_subdir, 'answer_ix_map.json')) as f:
-        answer_ix_map = json.load(f)
+
+    if args.test:
+        with open(os.path.join(args.data_root, args.feature_subdir, 'answer_ix_map.json')) as f:
+            answer_ix_map = json.load(f)
+    else:
+        with open(os.path.join(args.data_root, args.feature_subdir, 'answer_ix_map.json')) as f:
+            answer_ix_map = json.load(f)
 
     per_type_metric = PerTypeMetric(epoch=epoch)
     all_preds = []
