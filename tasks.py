@@ -3,7 +3,7 @@ import glob
 from fabric import Connection
 from invoke import task
 
-HOST        = 'ec2-13-229-213-71.ap-southeast-1.compute.amazonaws.com'
+HOST        = 'ec2-18-141-237-216.ap-southeast-1.compute.amazonaws.com'
 STORAGE     = '172.31.43.166'
 USER        = 'ubuntu'
 ROOT        = '/mnt/efs/ramen'
@@ -32,8 +32,8 @@ ALL = [
     '*.py'
 ]
 
-TRAIN_DATASET = 'CLEVR_CoGenTB'
-TEST_DATASET = 'CLEVR_CoGenTB'
+TRAIN_DATASET = 'CVQA'
+TEST_DATASET = 'CLEVR_CoGenTA'
 MODEL_NAME = 'ramen'
 
 @task
@@ -79,12 +79,11 @@ def setup(ctx):
         ctx.conn.run('sudo rsync -ar --exclude dataset /home/ubuntu/ramen/')
         ctx.conn.run('sudo mkdir /home/ubuntu/ramen/dataset/')
 
-
-
 @task(pre=[connect], post=[close])
 def fix(ctx):
     # locked error
-    ctx.conn.run('sudo killall apt apt-get')
+    ctx.conn.run('sudo rm /var/lib/dpkg/lock')
+    ctx.conn.run('sudo dpkg --configure -a')
 
 @task(pre=[connect], post=[close])
 def gpustats(ctx):
@@ -153,12 +152,15 @@ def train(ctx, model=''):
 
 
 @task(pre=[connect], post=[close])
-def test(ctx, model=''):
-    # ctx.run('rsync -rv --progress {files} {remote}'.format(files=' '.join(ALL), remote=REMOTE))
-    with ctx.conn.cd(TRAINROOT):
+def test(ctx):
+    ctx.run('rsync -rv --progress {files} {remote}'.format(files=' '.join(ALL), remote=REMOTE))
+    
+    with ctx.conn.cd('/mnt/efs/ramen/'):
+        ctx.conn.run(f'sudo chmod -R 777 /mnt/efs/ramen/dataset/{TRAIN_DATASET}/{TRAIN_DATASET}_results/')
+        ctx.conn.run(f'sudo chmod +x ./scripts/{TRAIN_DATASET}/test_{MODEL_NAME}_{TEST_DATASET}.sh')
         with ctx.conn.prefix('source activate pytorch_p36'):
-            ctx.conn.run(f'dtach -A /tmp/{PROJECT_NAME} ./scripts/{TRAIN_DATASET}/test_{MODEL_NAME}_{TEST_DATASET}.sh', pty=True)
-
+            ctx.conn.run(f'dtach -A /tmp/{PROJECT_NAME} ./scripts/{TRAIN_DATASET}/test_{MODEL_NAME}_{TEST_DATASET}.sh',
+                         pty=True)
 
 @task(pre=[connect], post=[close])
 def resume(ctx):
