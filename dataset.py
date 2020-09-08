@@ -115,7 +115,7 @@ def combine_trainval(dataroot, force_create=False):
         print(f"Saved {trainval_target_file}")
 
 
-def _load_dataset(dataroot, name, img_id2val, label2ans):
+def _load_dataset(dataroot, name, img_id2val, label2ans, args):
     """Load entries
 
     img_id2val: dict {img_id -> val} val can be used to retrieve image or features_path
@@ -124,6 +124,8 @@ def _load_dataset(dataroot, name, img_id2val, label2ans):
     """
     question_path = os.path.join(
         dataroot, 'questions/%s_questions.json' % (name))
+
+    print(f"Question Path : {question_path}")
     if name == 'trainval':
         combine_trainval(dataroot)
     questions = json.load(open(question_path))
@@ -132,25 +134,27 @@ def _load_dataset(dataroot, name, img_id2val, label2ans):
     questions = sorted(questions,
                        key=lambda x: x['question_id'])
     answer_not_found = 0
-    if 'test' not in name and 'test_dev' not in name and 'val' not in name:
+    if 'test2015' not in name:
         qn_id_to_ans = {}
         answer_path = os.path.join(dataroot, 'features', '%s_target.json' % name)
+        print(f"Answer Path : {answer_path}")
         answers = json.load(open(answer_path, 'r'))
         for answer in answers:
             qn_id_to_ans[str(answer['question_id'])] = answer
 
         entries = []
         for question in questions:
-            answer = qn_id_to_ans[str(question['question_id'])].copy()
             if str(question['question_id']) in qn_id_to_ans:
                 answer = qn_id_to_ans[str(question['question_id'])].copy()
             else:
                 answer_not_found += 1
                 answer = {'question_id': question['question_id'], 'image_id': question['image_id'], 'scores': [],
                           'labels': []}
+
             utils.assert_eq(question['question_id'], answer['question_id'])
             utils.assert_eq(question['image_id'], answer['image_id'])
             img_id = question['image_id']
+
             entries.append(_create_entry(img_id2val[str(img_id)], question, answer))
     else:  # test2015
         entries = []
@@ -190,6 +194,7 @@ class VQAFeatureDataset(Dataset):
             h5_name = name
 
         if custom_test_dataset:
+            print(f"Image Mapping Path : {os.path.join(args.test_feature_dir, '{}_ids_map.json'.format(h5_name))}")
             with open(os.path.join(args.test_feature_dir, '{}_ids_map.json'.format(h5_name))) as f:
                 self.img_id2idx = json.load(f)['image_id_to_ix']
             h5_path = os.path.join(args.test_feature_dir, '%s%s.hdf5' % (h5_name, '' if self.adaptive else ''))
@@ -209,7 +214,9 @@ class VQAFeatureDataset(Dataset):
             spatials = hf['spatial_features']
         else:
             spatials = hf['boxes']
-        self.entries = _load_dataset(data_root, name, self.img_id2idx, self.label2ans)
+
+        self.entries = _load_dataset(data_root, name, self.img_id2idx, self.label2ans, args)
+
         self.tokenize(args.token_length)
         self.tensorize()
         self.v_dim = features.shape[1 if self.adaptive else 2] + VqaUtils.get_spatial_length(
@@ -218,39 +225,26 @@ class VQAFeatureDataset(Dataset):
         self.s_dim = spatials.shape[1 if self.adaptive else 2]
         self.printed = False
 
-        if custom_test_dataset:
-            with open(os.path.join(args.test_data_root, 'questions', name + "_questions.json")) as qf:
-                if 'test' not in name:
-                    annotations = json.load(open(os.path.join(args.test_data_root, 'questions', name + "_annotations.json")))
-                    qid_to_qtype = get_question_id_to_question_type(annotations)
-                else:
-                    qid_to_qtype = None
-                print("Loading questions...")
-                qns = json.load(qf)
-                if 'questions' in qns:
-                    qns = qns['questions']
-                self.question_map = {}
-                for q in qns:
-                    self.question_map[q['question_id']] = q
-                    if qid_to_qtype is not None:
-                        q['question_type'] = qid_to_qtype[str(q['question_id'])]
+        if args.test:
+            dr = args.test_data_root
         else:
-            with open(os.path.join(args.data_root, 'questions', name + "_questions.json")) as qf:
-                if 'test' not in name:
-                    annotations = json.load(open(os.path.join(args.data_root, 'questions', name + "_annotations.json")))
-                    qid_to_qtype = get_question_id_to_question_type(annotations)
-                else:
-                    qid_to_qtype = None
-                print("Loading questions...")
-                qns = json.load(qf)
-                if 'questions' in qns:
-                    qns = qns['questions']
-                self.question_map = {}
-                for q in qns:
-                    self.question_map[q['question_id']] = q
-                    if qid_to_qtype is not None:
-                        q['question_type'] = qid_to_qtype[str(q['question_id'])]
+            dr = args.data_root
 
+        with open(os.path.join(dr, 'questions', name + "_questions.json")) as qf:
+            if 'test' not in name:
+                annotations = json.load(open(os.path.join(args.test_data_root, 'questions', name + "_annotations.json")))
+                qid_to_qtype = get_question_id_to_question_type(annotations)
+            else:
+                qid_to_qtype = None
+            print("Loading questions...")
+            qns = json.load(qf)
+            if 'questions' in qns:
+                qns = qns['questions']
+            self.question_map = {}
+            for q in qns:
+                self.question_map[q['question_id']] = q
+                if qid_to_qtype is not None:
+                    q['question_type'] = qid_to_qtype[str(q['question_id'])]
 
     def tokenize(self, max_length):
         """Tokenizes the questions.
@@ -331,7 +325,6 @@ class VQAFeatureDataset(Dataset):
         question_type = VqaUtils.get_question_type(full_question)
         answer = entry['answer']
         target = torch.zeros(self.num_ans_candidates)
-
         if None != answer:
             labels = answer['labels']
             scores = answer['scores']
