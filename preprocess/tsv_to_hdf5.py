@@ -129,54 +129,6 @@ if __name__ == '__main__':
             counter += 1
             print(f"Completed image index {counter}\r", end="")
 
-    # counter = 0
-    # print("reading tdiuc tsv...")
-    # with open(tdiuc_infile, "r") as tsv_in_file:
-    #     reader = csv.DictReader(tsv_in_file, delimiter='\t', fieldnames=FIELDNAMES)
-    #     for item in reader:
-    #         item['num_boxes'] = int(item['num_boxes'])
-    #         image_id = int(item['image_id'])
-    #         image_w = float(item['image_w'])
-    #         image_h = float(item['image_h'])
-    #         bboxes = np.frombuffer(
-    #             base64.decodestring(bytes(item['boxes'], 'utf-8')),
-    #             dtype=np.float32).reshape((item['num_boxes'], -1))
-    #
-    #         box_width = bboxes[:, 2] - bboxes[:, 0]
-    #         box_height = bboxes[:, 3] - bboxes[:, 1]
-    #         scaled_width = box_width / image_w
-    #         scaled_height = box_height / image_h
-    #         scaled_x = bboxes[:, 0] / image_w
-    #         scaled_y = bboxes[:, 1] / image_h
-    #
-    #         box_width = box_width[..., np.newaxis]
-    #         box_height = box_height[..., np.newaxis]
-    #         scaled_width = scaled_width[..., np.newaxis]
-    #         scaled_height = scaled_height[..., np.newaxis]
-    #         scaled_x = scaled_x[..., np.newaxis]
-    #         scaled_y = scaled_y[..., np.newaxis]
-    #
-    #         spatial_features = np.concatenate(
-    #             (scaled_x,
-    #              scaled_y,
-    #              scaled_x + scaled_width,
-    #              scaled_y + scaled_height,
-    #              scaled_width,
-    #              scaled_height),
-    #             axis=1)
-    #
-    #         # if image_id in train_imgids:
-    #         #     train_imgids.remove(image_id)
-    #         bb[counter, :, :] = bboxes
-    #         img_features[counter, :, :] = np.frombuffer(
-    #             base64.decodestring(bytes(item['features'], 'utf-8')),
-    #             dtype=np.float32).reshape((item['num_boxes'], -1))
-    #         spatial_img_features[counter, :, :] = spatial_features
-    #         image_ids_map['image_id_to_ix'][str(image_id)] = str(counter)
-    #         image_ids_map['ix_to_image_id'][str(counter)] = str(image_id)
-    #         counter += 1
-    #         print(f"Completed image index {counter}\r", end="")
-
     with open(os.path.join(args.data_root, 'features', f'{output_split}_ids_map.json'), 'w') as f:
         json.dump(image_ids_map, f)
 
