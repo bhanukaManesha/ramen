@@ -8,6 +8,8 @@ source activate pytorch_p36
 # Using efs mount storage
 #ROOT=/mnt/efs/ramen
 #PROJECT_ROOT=/mnt/efs/ramen
+ROOT=/mnt/efs/ramen
+PROJECT_ROOT=/mnt/efs/ramen
 
 # Using local mac
 #ROOT=/Users/bhanukagamage/Dropbox/Monash/Thesis/ramen

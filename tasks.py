@@ -134,19 +134,22 @@ def moveresultsbacktoefs(ctx):
 def train(ctx, model=''):
     ctx.run('rsync -rv --progress {files} {remote}'.format(files=' '.join(ALL), remote=REMOTE))
 
-    with ctx.conn.cd('/mnt/efs/ramen/'):
-        ctx.conn.run('sudo rsync -ar --progress --exclude dataset . /home/ubuntu/ramen/')
+    # with ctx.conn.cd('/mnt/efs/ramen/'):
+    #     ctx.conn.run('sudo rsync -ar --progress --exclude dataset . /home/ubuntu/ramen/')
+    #
+    #     # comment if dataset is already present in the home folder
+    #     ctx.conn.run(f'sudo rsync -r --copy-links -h --progress dataset/{TRAIN_DATASET} /home/ubuntu/ramen/dataset/')
 
         # comment if dataset is already present in the home folder
         # ctx.conn.run(f'sudo rsync -r --copy-links -h --progress dataset/{TRAIN_DATASET} /home/ubuntu/ramen/dataset/')
 
-    with ctx.conn.cd('/home/ubuntu/ramen/'):
-        ctx.conn.run(f'sudo chmod -R 777 .')
-        ctx.conn.run(f'sudo chmod -R +x .')
+    # with ctx.conn.cd(TRAINROOT):
+    #     with ctx.conn.prefix('source activate pytorch_p36'):
+    #         ctx.conn.run(f'dtach -A /tmp/{PROJECT_NAME} ./scripts/{TRAIN_DATASET}/{MODEL_NAME}_{TEST_DATASET}.sh', pty=True)
 
-    with ctx.conn.cd(TRAINROOT):
+    with ctx.conn.cd('/mnt/efs/ramen/'):
         with ctx.conn.prefix('source activate pytorch_p36'):
-            ctx.conn.run(f'dtach -A /tmp/{PROJECT_NAME} ./scripts/{TRAIN_DATASET}/{MODEL_NAME}_{TEST_DATASET}.sh', pty=True)
+            ctx.conn.run(f'dtach -A /tmp/{PROJECT_NAME} ./scripts/{TRAIN_DATASET}/{MODEL_NAME}_{TRAIN_DATASET}.sh', pty=True)
 
     # with ctx.conn.cd('/mnt/efs/ramen/'):
     #     with ctx.conn.prefix('source activate pytorch_p36'):
@@ -160,7 +163,6 @@ def pullalldata(ctx):
 @task(pre=[connect], post=[close])
 def test(ctx):
     ctx.run('rsync -rv --progress {files} {remote}'.format(files=' '.join(ALL), remote=REMOTE))
-
     with ctx.conn.cd('/mnt/efs/ramen/'):
         ctx.conn.run(f'sudo chmod -R 777 /mnt/efs/ramen/dataset/{TRAIN_DATASET}/{TRAIN_DATASET}_results/')
         ctx.conn.run(f'sudo chmod +x ./scripts/{TRAIN_DATASET}/test_{MODEL_NAME}_{TEST_DATASET}.sh')

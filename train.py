@@ -212,17 +212,17 @@ def train(model, train_loader, val_loader, num_epochs, optimizer, criterion, arg
 #
 def evaluate_by_logits_key(model, dataloader, epoch, criterion, args, val_metrics, logits_key='logits'):
     per_type_metric = PerTypeMetric(epoch=epoch)
-    # if args.test:
-    #     with open(os.path.join(args.test_data_root, args.feature_subdir, 'answer_ix_map.json')) as f:
-    #         answer_ix_map = json.load(f)
-    # else:
-    with open(os.path.join(args.data_root, args.feature_subdir, 'answer_ix_map.json')) as f:
-        answer_ix_map = json.load(f)
+    if args.test:
+        with open(os.path.join(args.test_data_root, args.feature_subdir, 'answer_ix_map.json')) as f:
+            answer_ix_map = json.load(f)
+    else:
+        with open(os.path.join(args.data_root, args.feature_subdir, 'answer_ix_map.json')) as f:
+            answer_ix_map = json.load(f)
 
     all_preds = []
 
-    for visual_features, boxes, question_features, answers, question_types, question_ids, question_lengths in iter(tqdm(
-            dataloader)):
+    for visual_features, boxes, question_features, answers, question_types, question_ids, question_lengths in iter(
+            dataloader):
         visual_features = Variable(visual_features.float())
         boxes = Variable(boxes.float())
         question_features = Variable(question_features)
@@ -230,6 +230,8 @@ def evaluate_by_logits_key(model, dataloader, epoch, criterion, args, val_metric
             visual_features = visual_features.cuda()
             boxes = boxes.cuda()
             question_features = question_features.cuda()
+
+        if not args.test or not args.test_does_not_have_answers:
             answers = answers.cuda()
 
         # if not args.test or not args.test_does_not_have_answers:
