@@ -9,8 +9,14 @@ from preprocess.dataset import Dictionary
 import argparse
 
 
-def create_dictionary(dataroot):
+def create_dictionary(dataroot, old_dictionary=None):
     dictionary = Dictionary()
+
+    if old_dictionary is not None:
+        print("Copying old dictionary to new dictionary")
+        dictionary.word2idx = old_dictionary.word2idx
+        dictionary.idx2word = old_dictionary.idx2word
+
     questions = []
     files = [
         'train_questions.json',
@@ -53,10 +59,18 @@ def create_glove_embedding_init(idx2word, glove_file):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_root')
+    parser.add_argument('--old_dictionary_file', type=str, required=False)
     args = parser.parse_args()
     data_root = args.data_root
+
+    if args.old_dictionary_file is not None:
+        old_dictionary = Dictionary.load_from_file(args.old_dictionary_file)
+    else:
+        old_dictionary = None
+
+
     print("Creating dictionary...")
-    d = create_dictionary(os.path.join(data_root, 'questions'))
+    d = create_dictionary(os.path.join(data_root, 'questions'), old_dictionary=old_dictionary)
     features_path = os.path.join(data_root, 'features')
     d.dump_json(os.path.join(features_path, 'dictionary.json'))
     d.dump_to_file(os.path.join(features_path, 'dictionary.pkl'))
