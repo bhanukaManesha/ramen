@@ -4,3 +4,6 @@
 *.pth
 *.txt
 .idea
+dataset
+.DS_Store
+results
