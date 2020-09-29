@@ -4,9 +4,10 @@ source scripts/common.sh
 cd ${PROJECT_ROOT}
 
 DATA_SET=CLEVR
-DATA_ROOT=/hdd/robik/${DATA_SET}
+DATA_ROOT=${PROJECT_ROOT}/dataset/${DATA_SET}
 
-RESULTS_ROOT=/hdd/robik/${DATA_SET}_results
+
+RESULTS_ROOT=${PROJECT_ROOT}/results/${DATA_SET}_results
 mkdir -p ${RESULTS_ROOT}
 MODEL=Ramen
 RESUME_EXPT_NAME=${MODEL}_${DATA_SET}
