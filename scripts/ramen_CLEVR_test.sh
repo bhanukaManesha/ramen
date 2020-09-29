@@ -21,5 +21,5 @@ python -u run_network.py \
 --spatial_feature_type mesh \
 --spatial_feature_length 16 \
 --test \
---resume_expt_dir ${ROOT}/RAMEN_CKPTS \
+--resume_expt_dir ${PROJECT_ROOT}/checkpoints/CLEVR_results \
 --resume_expt_name ${RESUME_EXPT_NAME} > ${RESULTS_ROOT}/${EXPT_NAME}.log
