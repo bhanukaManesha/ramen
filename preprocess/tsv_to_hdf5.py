@@ -41,17 +41,37 @@ def count(infile, FIELDNAMES):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_root', type=str, default='/hdd/robik/VQACP')
-    parser.add_argument('--split', type=str, choices=['trainval', 'test2015'], default='trainval')
+    parser.add_argument('--split', type=str, choices=['trainval', 'test2015', 'traintdiuc', 'valtdiuc'], default='trainval')
+    parser.add_argument('--tdiuc', action='store_true')
     args = parser.parse_args()
 
-    output_split = 'test' if 'test' in args.split else args.split
-
+    if args.tdiuc:
+        output_split = args.split
+    else:
+        output_split = 'test' if 'test' in args.split else args.split
     infile = args.data_root + f'/{args.split}_36/{args.split}_resnet101_faster_rcnn_genome_36.tsv'
-    train_data_file = f'{args.data_root}/features/{output_split}.hdf5'
+    train_data_file = f'{args.data_root}/features/{output_split}.hdf5'    
+
+    # if args.tdiuc:
+    #     output_split = 'valtdiuc' if 'test' in args.split else 'traintdiuc'
+    #     if 'train' in args.split:
+    #         tdiuc_infile = args.data_root + f'/traintdiuc_36/traintdiuc_resnet101_faster_rcnn_genome_36.tsv'
+    #         train_data_file = f'{args.data_root}/features/{output_split}.hdf5'
+    #     elif 'test' in args.split:
+    #         tdiuc_infile = args.data_root + f'/valtdiuc_36/valtdiuc_resnet101_faster_rcnn_genome_36.tsv'
+    #         train_data_file = f'{args.data_root}/features/{output_split}.hdf5'
+
     h5_file = h5py.File(train_data_file, "w")
+
     image_ids_map = {'image_id_to_ix': {}, 'ix_to_image_id': {}}
     print('counting number of images...')
+
+    # if args.tdiuc:
+    #     print(f'reading from {tdiuc_infile} and {infile}')
+    #     num_images = count(tdiuc_infile, FIELDNAMES) + count(infile, FIELDNAMES)
+    # else:
     num_images = count(infile, FIELDNAMES)
+    
     # num_images = 2/
     print(f"Num images {num_images}")
     img_features = h5_file.create_dataset(
@@ -62,7 +82,7 @@ if __name__ == '__main__':
         'spatial_features', (num_images, num_fixed_boxes, 6), 'f')
 
     counter = 0
-    print("reading tsv...")
+    print("reading main tsv...")
     with open(infile, "r") as tsv_in_file:
         reader = csv.DictReader(tsv_in_file, delimiter='\t', fieldnames=FIELDNAMES)
         for item in reader:
