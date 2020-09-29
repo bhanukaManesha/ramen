@@ -162,7 +162,9 @@ class RUBiBaseline(nn.Module):
         q, _ = txt_enc.rnn(q_emb)
         if len(l.shape)==1:
             l = l.unsqueeze(1)
-        l = l.cuda()
+
+        if torch.cuda.is_available():
+            l = l.cuda()
 
         if self.self_q_att:
             q_att = q_att_linear0(q)

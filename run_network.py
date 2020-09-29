@@ -54,7 +54,7 @@ def parse_args():
     parser.add_argument('--test_does_not_have_answers', action='store_true')
     parser.add_argument('--train_split', type=str, default='train')
     parser.add_argument('--question_rnn_type', type=str, default='GRU')
-    parser.add_argument('--test_data_root', type=str, default='/hdd/robik')
+    parser.add_argument('--test_data_root', type=str)
     parser.add_argument('--test_data_set', type=str, required=False)
 
     # RAMEN specific arguments
@@ -110,7 +110,8 @@ def parse_args():
 
     args.vocab_dir = os.path.join(args.data_root, args.feature_subdir)
     args.feature_dir = os.path.join(args.data_root, args.feature_subdir)
-    args.test_feature_dir = os.path.join(args.test_data_root, args.feature_subdir)
+    if args.test_data_root:
+        args.test_feature_dir = os.path.join(args.test_data_root, args.feature_subdir)
 
     if 'clevr' in args.data_set.lower():
         args.token_length = 45
@@ -167,9 +168,13 @@ def train_model():
 
     if args.apply_rubi:
         rubi = RUBiNet(model, args.num_ans_candidates, {'input_dim': args.q_emb_dim, 'dimensions': [2048, 2048, 3000]})
-        model = rubi.cuda()
+        rubi = model
+        if torch.cuda.is_available():
+            model = model.cuda()
+
     else:
-        model = model.cuda()
+        if torch.cuda.is_available():
+            model = model.cuda()
     print("Our kickass model {}".format(model))
 
     optimizer = None
