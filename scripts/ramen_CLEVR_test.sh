@@ -4,9 +4,10 @@ source scripts/common.sh
 cd ${PROJECT_ROOT}
 
 DATA_SET=CLEVR
-DATA_ROOT=/hdd/robik/${DATA_SET}
+DATA_ROOT=${PROJECT_ROOT}/dataset/${DATA_SET}
 
-RESULTS_ROOT=/hdd/robik/${DATA_SET}_results
+
+RESULTS_ROOT=${PROJECT_ROOT}/results/${DATA_SET}_results
 mkdir -p ${RESULTS_ROOT}
 MODEL=Ramen
 RESUME_EXPT_NAME=${MODEL}_${DATA_SET}
@@ -20,5 +21,5 @@ python -u run_network.py \
 --spatial_feature_type mesh \
 --spatial_feature_length 16 \
 --test \
---resume_expt_dir ${ROOT}/RAMEN_CKPTS \
+--resume_expt_dir ${PROJECT_ROOT}/checkpoints/CLEVR_results \
 --resume_expt_name ${RESUME_EXPT_NAME} > ${RESULTS_ROOT}/${EXPT_NAME}.log

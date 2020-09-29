@@ -3,7 +3,7 @@
 source scripts/common.sh
 cd ${PROJECT_ROOT}
 
-DATA_SET=CLEVR
+DATA_SET=CLEVR_CoGenTA
 DATA_ROOT=${PROJECT_ROOT}/dataset/${DATA_SET}
 
 # Convert to VQA2-like format

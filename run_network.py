@@ -11,8 +11,8 @@ from models import models
 from train import train
 import math
 import vqa_utils
-from models.rubi import RUBiNet
-from criterion.rubi_criterion import RUBiCriterion
+# from models.rubi import RUBiNet
+# from criterion.rubi_criterion import RUBiCriterion
 
 
 def parse_args():
@@ -28,7 +28,7 @@ def parse_args():
     parser.add_argument('--q_emb_dim', type=int, default=1024)
     parser.add_argument('--model', type=str, default='UpDn')
     parser.add_argument('--apply_rubi', action='store_true')
-    parser.add_argument('--batch_size', type=int, default=64)
+    parser.add_argument('--batch_size', type=int, default=1024)
     parser.add_argument('--seed', type=int, default=7, help='random seed')
     parser.add_argument('--answers_available', type=int, default=1, help='Are the answers available?')
     parser.add_argument('--mode', type=str, choices=['train', 'test'],

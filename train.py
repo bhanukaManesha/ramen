@@ -113,7 +113,7 @@ def train(model, train_loader, val_loader, num_epochs, optimizer, criterion, arg
                 optimizer.step()
                 optimizer.zero_grad()
                 iter_num += 1
-                if i % 1000 == 0:
+                if i % 100 == 0:
                     train_metrics.print(epoch)
                     # if args.apply_rubi:
                     #     print("\n\n### logits_rubi ###")
