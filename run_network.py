@@ -28,7 +28,7 @@ def parse_args():
     parser.add_argument('--q_emb_dim', type=int, default=1024)
     parser.add_argument('--model', type=str, default='UpDn')
     parser.add_argument('--apply_rubi', action='store_true')
-    parser.add_argument('--batch_size', type=int, default=64)
+    parser.add_argument('--batch_size', type=int, default=1024)
     parser.add_argument('--seed', type=int, default=7, help='random seed')
     parser.add_argument('--answers_available', type=int, default=1, help='Are the answers available?')
     parser.add_argument('--mode', type=str, choices=['train', 'test'],
@@ -54,7 +54,7 @@ def parse_args():
     parser.add_argument('--test_does_not_have_answers', action='store_true')
     parser.add_argument('--train_split', type=str, default='train')
     parser.add_argument('--question_rnn_type', type=str, default='GRU')
-    parser.add_argument('--test_data_root', type=str, default='/hdd/robik')
+    parser.add_argument('--test_data_root', type=str)
     parser.add_argument('--test_data_set', type=str, required=False)
 
     # RAMEN specific arguments
@@ -92,7 +92,7 @@ def parse_args():
 
     args.dataroot = args.data_root
     if args.results_path is None:
-        args.results_path = f'{args.dataroot}/{args.data_set}_results'
+        args.results_path = args.dataroot +'/' + args.data_set + '_results'
     args.answers_available = bool(args.answers_available)
 
     # Handle experiment save/resume
@@ -110,7 +110,8 @@ def parse_args():
 
     args.vocab_dir = os.path.join(args.data_root, args.feature_subdir)
     args.feature_dir = os.path.join(args.data_root, args.feature_subdir)
-    args.test_feature_dir = os.path.join(args.test_data_root, args.feature_subdir)
+    if args.test_data_root:
+        args.test_feature_dir = os.path.join(args.test_data_root, args.feature_subdir)
 
     if 'clevr' in args.data_set.lower():
         args.token_length = 45
@@ -167,11 +168,16 @@ def train_model():
 
     if args.apply_rubi:
         rubi = RUBiNet(model, args.num_ans_candidates, {'input_dim': args.q_emb_dim, 'dimensions': [2048, 2048, 3000]})
-        model = rubi.cuda()
+        rubi = model
+        if torch.cuda.is_available():
+            model = model.cuda()
+
     else:
-        model = model.cuda()
+        if torch.cuda.is_available():
+            model = model.cuda()
     print("Our kickass model {}".format(model))
 
+    print(torch.cuda.get_device_name(0))
     optimizer = None
     epoch = 0
     best_val_score = 0

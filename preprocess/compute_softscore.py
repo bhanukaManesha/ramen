@@ -128,7 +128,6 @@ def preprocess_answer(answer):
     answer = answer.replace(',', '')
     return answer
 
-
 def filter_answers(answers_dset, min_occurence):
     """This will change the answer to preprocessed version
     """
@@ -136,23 +135,26 @@ def filter_answers(answers_dset, min_occurence):
 
     for ans_entry in answers_dset:
         answers = ans_entry['answers']
-        gtruth = ans_entry['multiple_choice_answer']
+        if 'multiple_choice_answer' in ans_entry:
+            gtruth = ans_entry['multiple_choice_answer']
+        else:
+            gtruth = ans_entry['answers'][0]['answer']
         gtruth = preprocess_answer(gtruth)
         if gtruth not in occurence:
             occurence[gtruth] = set()
         occurence[gtruth].add(ans_entry['question_id'])
-    filt_occurence = {}
     for answer in occurence.keys():
-        if len(occurence[answer]) >= min_occurence:
-            #occurence.pop(answer)
-            if answer not in filt_occurence:
-                filt_occurence[answer] = []
-            filt_occurence[answer] = occurence[answer]
-
+        if len(occurence[answer]) < min_occurence:
+            ans_len = len(occurence[answer])
+            occurence.pop(answer)
+            raise RuntimeError(
+                "Answer: {}. number of answers: {} < min_occurence: {}. Since questions were pre-filtered, "
+                "this should have never happened!".format(answer, ans_len, min_occurence))
 
     print('Num of answers that appear >= %d times: %d' % (
-        min_occurence, len(filt_occurence)))
-    return filt_occurence
+        min_occurence, len(occurence)))
+    return occurence
+
 
 
 def filter_top_k_answers(answers_dset, top_k=1000):

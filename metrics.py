@@ -41,9 +41,13 @@ class Metrics:
         self.score = self.raw_score
         self.end_time = time.time()
 
-    def print(self, epoch):
-        print("Epoch {} Score {:.2f} Loss {}".format(epoch, 100 * self.raw_score / self.num_examples,
-                                                      self.loss / self.num_examples))
+    def print(self, epoch=None):
+        if epoch:
+            print("Epoch {} Score {:.2f} Loss {}".format(epoch, 100 * self.raw_score / self.num_examples,
+                                                          self.loss / self.num_examples))
+        else:
+            print("Score {:.2f} Loss {}".format(100 * self.raw_score / self.num_examples,
+                                                         self.loss / self.num_examples))
 
     def reset_start_time(self):
         self.start_time = time.time()
