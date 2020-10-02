@@ -20,7 +20,9 @@ def compute_score_with_logits(preds, labels, logits_key='logits'):
     """
     logits = preds[logits_key]
     logits = torch.max(logits, 1)[1].data  # argmax
-    one_hots = torch.zeros(*labels.size()).cuda()
+    one_hots = torch.zeros(*labels.size())
+    if torch.cuda.is_available():
+        one_hots = one_hots.cuda()
     one_hots.scatter_(1, logits.view(-1, 1), 1)
     scores = (one_hots * labels)
     return scores
@@ -95,10 +97,17 @@ def train(model, train_loader, val_loader, num_epochs, optimizer, criterion, arg
         if not args.test:
             for i, (visual_features, boxes, question_features, answers, question_types, question_ids,
                     question_lengths) in enumerate(train_loader):
-                visual_features = Variable(visual_features.float()).cuda()
-                boxes = Variable(boxes.float()).cuda()
-                question_features = Variable(question_features).cuda()
-                answers = Variable(answers).cuda()
+                visual_features = Variable(visual_features.float())
+                boxes = Variable(boxes.float())
+                question_features = Variable(question_features)
+                answers = Variable(answers)
+
+                if torch.cuda.is_available():
+                    visual_features = visual_features.cuda()
+                    boxes = boxes.cuda()
+                    question_features = question_features.cuda()
+                    answers = answers.cuda()
+
 
                 pred = model(visual_features, boxes, question_features, answers, question_lengths)
                 loss = criterion(pred, answers)['loss']
@@ -202,12 +211,18 @@ def evaluate_by_logits_key(model, dataloader, epoch, criterion, args, val_metric
 
     for visual_features, boxes, question_features, answers, question_types, question_ids, question_lengths in iter(
             dataloader):
-        visual_features = Variable(visual_features.float()).cuda()
-        boxes = Variable(boxes.float()).cuda()
-        question_features = Variable(question_features).cuda()
+        visual_features = Variable(visual_features.float())
+        boxes = Variable(boxes.float())
+        question_features = Variable(question_features)
+
+        if torch.cuda.is_available():
+            visual_features = visual_features.cuda()
+            boxes = boxes.cuda()
+            question_features = question_features.cuda()
 
         if not args.test or not args.test_does_not_have_answers:
-            answers = answers.cuda()
+            if torch.cuda.is_available():
+                answers = answers.cuda()
 
         pred = model(visual_features, boxes, question_features, None, question_lengths)
 
@@ -283,12 +298,18 @@ def evaluate(model, dataloader, epoch, criterion, args, val_metrics, val_metrics
 
     for visual_features, boxes, question_features, answers, question_types, question_ids, question_lengths in iter(
             dataloader):
-        visual_features = Variable(visual_features.float()).cuda()
-        boxes = Variable(boxes.float()).cuda()
-        question_features = Variable(question_features).cuda()
+        visual_features = Variable(visual_features.float())
+        boxes = Variable(boxes.float())
+        question_features = Variable(question_features)
+
+        if torch.cuda.is_available():
+            visual_features = visual_features.cuda()
+            boxes = boxes.cuda()
+            question_features = question_features.cuda()
 
         if not args.test or not args.test_does_not_have_answers:
-            answers = answers.cuda()
+            if torch.cuda.is_available():
+                answers = answers.cuda()
 
         pred = model(visual_features, boxes, question_features, None, question_lengths)
         _internal_evaluation(args,

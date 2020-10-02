@@ -157,9 +157,11 @@ def train_model():
 
     if args.apply_rubi:
         rubi = RUBiNet(model, args.num_ans_candidates, {'input_dim': args.q_emb_dim, 'dimensions': [2048, 2048, 3000]})
-        model = rubi.cuda()
+        if torch.cuda.is_available():
+            model = rubi.cuda()
     else:
-        model = model.cuda()
+        if torch.cuda.is_available():
+            model = model.cuda()
     print("Our kickass model {}".format(model))
 
     optimizer = None
