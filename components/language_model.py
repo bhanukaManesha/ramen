@@ -168,6 +168,7 @@ class QuestionEmbedding(nn.Module):
             x = self.dropout_before_rnn(x)
 
         q_words_emb, hidden = self.rnn(x, hidden)  # q_words_emb: B x num_words x gru_dim, hidden: 1 x B x gru_dim
+        # print(f'q_words_emb.shape 1 : {q_words_emb.shape}')
 
         out = None
         if self.bidirect:
@@ -182,4 +183,6 @@ class QuestionEmbedding(nn.Module):
 
         if self.dropout_after_rnn is not None:
             out = self.dropout_after_rnn(out)
+
+        # print(f'q_words_emb.shape 2 : {q_words_emb.shape}')
         return out
