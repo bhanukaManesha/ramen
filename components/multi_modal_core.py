@@ -1,8 +1,7 @@
 import torch
 from torch import nn
 from models.rnn import RNN
-from components import nonlinearity
-
+from components import nonlinearity, transformer
 
 class LinearWithDropout(nn.Module):
     def __init__(self, in_s, out_s, dropout_type='1d', dropout_p=0):
@@ -66,6 +65,10 @@ class MultiModalCore(nn.Module):
         self.aggregator = RNN(out_s, config.mmc_aggregator_dim, nlayers=config.mmc_aggregator_layers,
                               bidirect=True)
 
+        # TODO : Refactor
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.transformer_aggregator = transformer.TransformerModel(15, 2048, 8, 2048, 1, 0.2).to(device)
+
     def __batch_norm(self, x, num_objs, flat_emb_dim):
         x = x.view(-1, flat_emb_dim)
         x = self.batch_norm_mmc(x)
@@ -89,6 +92,9 @@ class MultiModalCore(nn.Module):
         x = self.input_dropout(x)
         num_objs = x.shape[1]
         emb_size = x.shape[2]
+
+        # print(f'emb_size: {emb_size}')
+
         x = x.view(-1, emb_size)
         x = self.batch_norm_fusion(x)
         x = x.view(-1, num_objs, emb_size)
@@ -115,6 +121,9 @@ class MultiModalCore(nn.Module):
         x = self.batch_norm_mmc(x)
         x = x.view(-1, num_objs, self.mmc_sizes[-1])
 
+        # print(f'x.shape : {x.shape}')
+        # print(f'q.shape : {q.shape}')
+
         if not self.config.disable_late_fusion:
             x = torch.cat((x, q), dim=2)
             curr_size = x.size()
@@ -123,7 +132,17 @@ class MultiModalCore(nn.Module):
                 x = self.batch_norm_before_aggregation(x)
                 x = x.view(curr_size)
             # x = self.aggregator_dropout(x)
-            x_aggregated = self.aggregator(x)
+
+
+            x = x.transpose(0,1)
+            # print(f'x.shape before aggregator : {x.shape}')
+
+            # x_aggregated = self.aggregator(x)
+            x_aggregated = self.transformer_aggregator(x)
+
+            x_aggregated = x_aggregated[-1,:,:]
+            print(f'x_aggregated.shape after aggregator : {x_aggregated.shape}')
+
 
         return x, x_aggregated
 

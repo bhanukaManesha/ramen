@@ -49,9 +49,11 @@ class Mynet(nn.Module):
         q = self.w_emb(q)
         q_emb = self.q_emb(q, qlen)
         mmc, mmc_aggregated = self.mmc_net(v, b, q_emb)  # B x num_objs x num_hid and B x num_hid
+
         if self.pre_classification_dropout is not None:
             mmc_aggregated = self.pre_classification_dropout(mmc_aggregated)
         final_emb = self.pre_classification_layers(mmc_aggregated)
         logits = self.classifier(final_emb)
+        print(f'logits.shape : {logits.shape}')
         out = {'logits': logits, 'q_emb': q_emb}
         return out
