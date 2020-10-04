@@ -67,7 +67,7 @@ class MultiModalCore(nn.Module):
 
         # TODO : Refactor
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.transformer_aggregator = transformer.TransformerModel(15, 2048, 8, 2048, 1, 0.2).to(device)
+        self.transformer_aggregator = transformer.TransformerModel(2048, 2048, 8, 2048, 1, 0.2).to(device)
 
     def __batch_norm(self, x, num_objs, flat_emb_dim):
         x = x.view(-1, flat_emb_dim)

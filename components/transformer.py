@@ -14,10 +14,10 @@ class TransformerModel(nn.Module):
         encoder_layers = TransformerEncoderLayer(ninp, nhead, nhid, dropout)
         self.transformer_encoder = TransformerEncoder(encoder_layers, nlayers)
         # self.encoder = nn.Embedding(ntoken, ninp)
-        # self.ninp = ninp
-        # self.decoder = nn.Linear(ninp, ntoken)
+        self.ninp = ninp
+        self.decoder = nn.Linear(ninp, ntoken)
 
-        # self.init_weights()
+        self.init_weights()
 
     def _generate_square_subsequent_mask(self, sz):
         # Instead of triangular mask, use square mask
@@ -25,11 +25,11 @@ class TransformerModel(nn.Module):
         mask = mask.float().masked_fill(mask == 0, float('-inf')).masked_fill(mask == 1, float(0.0))
         return mask
 
-    # def init_weights(self):
-    #     initrange = 0.1
-    #     self.encoder.weight.data.uniform_(-initrange, initrange)
-    #     self.decoder.bias.data.zero_()
-    #     # self.decoder.weight.data.uniform_(-initrange, initrange)
+    def init_weights(self):
+        initrange = 0.1
+        # self.encoder.weight.data.uniform_(-initrange, initrange)
+        self.decoder.bias.data.zero_()
+        self.decoder.weight.data.uniform_(-initrange, initrange)
 
     def forward(self, src):
         if self.src_mask is None or self.src_mask.size(0) != src.size(0):
@@ -40,7 +40,7 @@ class TransformerModel(nn.Module):
         # src = self.encoder(src) * math.sqrt(self.ninp)
         src = self.pos_encoder(src)
         output = self.transformer_encoder(src, self.src_mask)
-        # output = self.decoder(output)
+        output = self.decoder(output)
         return output
 
 class PositionalEncoding(nn.Module):
