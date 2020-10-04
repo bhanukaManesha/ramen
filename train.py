@@ -101,7 +101,7 @@ def train(model, train_loader, val_loader, num_epochs, optimizer, criterion, arg
             val_metrics_rubi, val_metrics_q = None, None
 
         if not args.test:
-            tqdm_train_loader = tqdm(train_loader)
+            tqdm_train_loader = tqdm(train_loader, position=0, leave=True)
             for i, (visual_features, boxes, question_features, answers, question_types, question_ids,
                     question_lengths) in enumerate(tqdm_train_loader):
 
