@@ -59,9 +59,10 @@ def train(model, train_loader, val_loader, num_epochs, optimizer, criterion, arg
     if args.apply_rubi:
         val_per_type_metric_list_rubi, val_per_type_metric_list_q = [], []
 
+    lr_decay_step = 2
+    lr_decay_rate = .25
     if optimizer is None:
-        lr_decay_step = 2
-        lr_decay_rate = .25
+        
         # lr_decay_epochs = range(10, 25, lr_decay_step)
         # gradual_warmup_steps = [0.5 * args.lr, 1.0 * args.lr, 1.5 * args.lr, 2.0 * args.lr]
         # if args.apply_rubi:
@@ -72,6 +73,11 @@ def train(model, train_loader, val_loader, num_epochs, optimizer, criterion, arg
         #     gradual_warmup_steps = [0.5 * args.lr, 1.0 * args.lr, 1.5 * args.lr, 2.0 * args.lr]
         optimizer = getattr(torch.optim, args.optimizer)(filter(lambda p: p.requires_grad, model.parameters()),
                                                          lr=args.lr)
+    else:
+        gradual_warmup_steps = []
+        lr_decay_epochs = range(14, 100, lr_decay_step)
+
+
 
     iter_num = 0
     if args.test and start_epoch == num_epochs:
