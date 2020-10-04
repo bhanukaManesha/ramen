@@ -45,6 +45,19 @@ class Metrics:
         print("Epoch {} Score {:.2f} Loss {}".format(epoch, 100 * self.raw_score / self.num_examples,
                                                       self.loss / self.num_examples))
 
+    def get_score(self):
+        try:
+            return 100 * self.raw_score / self.num_examples
+        except ZeroDivisionError:
+            return 100 * self.raw_score / 1
+
+    def get_loss(self):
+        try:
+            return self.loss / self.num_examples
+        except ZeroDivisionError:
+            return self.loss / 1
+
+
     def reset_start_time(self):
         self.start_time = time.time()
 

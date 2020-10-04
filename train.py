@@ -9,7 +9,7 @@ from torch.autograd import Variable
 from vqa_utils import VqaUtils, PerTypeMetric
 from metrics import Metrics, accumulate_metrics
 import numpy as np
-
+from tqdm import tqdm
 
 def compute_score_with_logits(preds, labels, logits_key='logits'):
     """
@@ -101,8 +101,12 @@ def train(model, train_loader, val_loader, num_epochs, optimizer, criterion, arg
             val_metrics_rubi, val_metrics_q = None, None
 
         if not args.test:
+            tqdm_train_loader = tqdm(train_loader)
             for i, (visual_features, boxes, question_features, answers, question_types, question_ids,
-                    question_lengths) in enumerate(train_loader):
+                    question_lengths) in enumerate(tqdm_train_loader):
+
+                tqdm_train_loader.set_description(f'Loss : {train_metrics.get_loss()} | Score {train_metrics.get_score()}')
+
                 visual_features = Variable(visual_features.float())
                 boxes = Variable(boxes.float())
                 question_features = Variable(question_features)
@@ -128,8 +132,8 @@ def train(model, train_loader, val_loader, num_epochs, optimizer, criterion, arg
                 optimizer.step()
                 optimizer.zero_grad()
                 iter_num += 1
-                if i % 10 == 0:
-                    train_metrics.print(epoch)
+                #if i % 10 == 0:
+                    #train_metrics.print(epoch)
                     # if args.apply_rubi:
                     #     print("\n\n### logits_rubi ###")
                     #     train_metrics_rubi.print(epoch)
