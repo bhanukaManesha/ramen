@@ -66,8 +66,9 @@ def train(model, train_loader, val_loader, num_epochs, optimizer, criterion, arg
         # lr_decay_epochs = range(10, 25, lr_decay_step)
         # gradual_warmup_steps = [0.5 * args.lr, 1.0 * args.lr, 1.5 * args.lr, 2.0 * args.lr]
         # if args.apply_rubi:
-        lr_decay_epochs = range(14, 24, lr_decay_step)
+        lr_decay_epochs = range(14, 100, lr_decay_step)
         gradual_warmup_steps = [i * args.lr for i in torch.linspace(0.5, 2.0, 7)]
+        print(gradual_warmup_steps)
         # else:
         #     lr_decay_epochs = range(10, 25, lr_decay_step)
         #     gradual_warmup_steps = [0.5 * args.lr, 1.0 * args.lr, 1.5 * args.lr, 2.0 * args.lr]
