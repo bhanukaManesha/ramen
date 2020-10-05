@@ -18,7 +18,7 @@ class Mynet(nn.Module):
                                        dropout_before_rnn=config.question_dropout_before_rnn,
                                        dropout_after_rnn=config.question_dropout_after_rnn)
 
-        clf_in_size = 36 * 64
+        clf_in_size = 15 * 64
         classifier_layers = []
         for ix, size in enumerate(config.classifier_sizes):
             in_s = clf_in_size if ix == 0 else config.classifier_sizes[ix - 1]
@@ -53,6 +53,7 @@ class Mynet(nn.Module):
         # 36 * b * 64
         if self.pre_classification_dropout is not None:
             mmc_aggregated = self.pre_classification_dropout(mmc_aggregated)
+
         final_emb = self.pre_classification_layers(mmc_aggregated)
         logits = self.classifier(final_emb)
         # print(f'logits.shape : {logits.shape}')

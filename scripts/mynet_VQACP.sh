@@ -28,6 +28,8 @@ python -u run_network.py \
 --spatial_feature_length 16 \
 --h5_prefix use_split 2>&1 | tee ${RESULTS_ROOT}/${EXPT_NAME}.log
 
+# --resume \
+# --resume_expt_dir /home/student/Documents/Bhanuka/HonoursProject/ramen/dataset/VQACP2_results \
 #--resume \
 #--resume_expt_dir /home/student/Documents/Bhanuka/HonoursProject/ramen/dataset/CLEVR_results \
 #--words_dropout 0.5 \

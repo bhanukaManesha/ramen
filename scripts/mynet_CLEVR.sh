@@ -22,7 +22,6 @@ python -u run_network.py \
 --data_root ${DATA_ROOT} \
 --expt_name ${EXPT_NAME} \
 --model ${MODEL} \
---lr 0.000125 \
 --batch_size 64 \
 --epochs 100 \
 --spatial_feature_type mesh \
