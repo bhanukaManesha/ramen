@@ -62,8 +62,8 @@ class MultiModalCore(nn.Module):
             out_s += config.q_emb_dim
             if not self.config.disable_batch_norm_for_late_fusion:
                 self.batch_norm_before_aggregation = nn.BatchNorm1d(out_s)
-        self.aggregator = RNN(out_s, config.mmc_aggregator_dim, nlayers=config.mmc_aggregator_layers,
-                              bidirect=True)
+        # self.aggregator = RNN(out_s, config.mmc_aggregator_dim, nlayers=config.mmc_aggregator_layers,
+        #                       bidirect=True)
 
         # TODO : Refactor
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
