@@ -20,7 +20,7 @@ python -u run_network.py \
 --data_root ${DATA_ROOT} \
 --expt_name ${EXPT_NAME} \
 --words_dropout 0.5 \
---batch_size 1024 \
+--batch_size 64 \
 --model ${MODEL} \
 --question_dropout_after_rnn 0.5 \
 --epochs 100 \
@@ -28,7 +28,7 @@ python -u run_network.py \
 --spatial_feature_length 16 \
 --h5_prefix use_split 2>&1 | tee ${RESULTS_ROOT}/${EXPT_NAME}.log
 
-#--resume \
-#--resume_expt_dir /home/student/Documents/Bhanuka/HonoursProject/ramen/dataset/CLEVR_results \
+# --resume \
+# --resume_expt_dir /home/student/Documents/Bhanuka/HonoursProject/ramen/dataset/VQACP2_results \
 #--words_dropout 0.5 \
 #--question_dropout_after_rnn 0.5 \
