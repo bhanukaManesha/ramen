@@ -20,7 +20,7 @@ python -u run_network.py \
 --data_root ${DATA_ROOT} \
 --expt_name ${EXPT_NAME} \
 --words_dropout 0.5 \
---batch_size 1024 \
+--batch_size 64 \
 --model ${MODEL} \
 --question_dropout_after_rnn 0.5 \
 --epochs 100 \

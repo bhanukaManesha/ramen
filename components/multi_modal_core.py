@@ -62,12 +62,12 @@ class MultiModalCore(nn.Module):
             out_s += config.q_emb_dim
             if not self.config.disable_batch_norm_for_late_fusion:
                 self.batch_norm_before_aggregation = nn.BatchNorm1d(out_s)
-        self.aggregator = RNN(out_s, config.mmc_aggregator_dim, nlayers=config.mmc_aggregator_layers,
-                              bidirect=True)
+        # self.aggregator = RNN(out_s, config.mmc_aggregator_dim, nlayers=config.mmc_aggregator_layers,
+        #                       bidirect=True)
 
         # TODO : Refactor
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.transformer_aggregator = transformer.TransformerModel(2048, 2048, 2, 1024, 1, 0.2).to(device)
+        self.transformer_aggregator = transformer.TransformerModel(64, 2048, 2, 1024, 1, 0.2).to(device)
         for p in self.transformer_aggregator.parameters():
             if p.dim() > 1:
                 nn.init.xavier_uniform_(p)
@@ -142,8 +142,11 @@ class MultiModalCore(nn.Module):
 
             # x_aggregated = self.aggregator(x)
             x_aggregated = self.transformer_aggregator(x)
+            x_aggregated = x_aggregated.transpose(0, 1)
+            x_aggregated = x_aggregated.reshape(self.config.batch_size, -1)
+            # print(f'x_aggregated.shape after aggregator : {x_aggregated.shape}')
 
-            x_aggregated = x_aggregated[-1,:,:]
+            # x_aggregated = x_aggregated[-1,:,:]
             # print(f'x_aggregated.shape after aggregator : {x_aggregated.shape}')
 
 

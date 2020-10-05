@@ -23,12 +23,13 @@ python -u run_network.py \
 --expt_name ${EXPT_NAME} \
 --model ${MODEL} \
 --lr 0.000125 \
---resume \
---resume_expt_dir /home/student/Documents/Bhanuka/HonoursProject/ramen/dataset/CLEVR_results \
+--batch_size 64 \
 --epochs 100 \
 --spatial_feature_type mesh \
 --spatial_feature_length 16 \
 --h5_prefix use_split 2>&1 | tee ${RESULTS_ROOT}/${EXPT_NAME}.log
 
+#--resume \
+#--resume_expt_dir /home/student/Documents/Bhanuka/HonoursProject/ramen/dataset/CLEVR_results \
 #--words_dropout 0.5 \
 #--question_dropout_after_rnn 0.5 \

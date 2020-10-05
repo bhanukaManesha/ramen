@@ -11,6 +11,7 @@ from models import models
 from train import train
 import math
 import vqa_utils
+from prettytable import PrettyTable
 # from models.rubi import RUBiNet
 # from criterion.rubi_criterion import RUBiCriterion
 
@@ -155,6 +156,9 @@ def train_model():
     args.v_dim = val_dset.v_dim
     model = getattr(models, args.model)(args)
 
+    count_parameters(model)
+
+
     if args.apply_rubi:
         rubi = RUBiNet(model, args.num_ans_candidates, {'input_dim': args.q_emb_dim, 'dimensions': [2048, 2048, 3000]})
         if torch.cuda.is_available():
@@ -201,6 +205,17 @@ def train_model():
         train_dset.close_h5_file()
     val_dset.close_h5_file()
 
+def count_parameters(model):
+    table = PrettyTable(["Modules", "Parameters"])
+    total_params = 0
+    for name, parameter in model.named_parameters():
+        if not parameter.requires_grad: continue
+        param = parameter.numel()
+        table.add_row([name, param])
+        total_params += param
+    print(table)
+    print(f"Total Trainable Params: {total_params}")
+    return total_params
 
 if __name__ == '__main__':
     args = parse_args()
