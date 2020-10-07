@@ -63,6 +63,25 @@ class MultiModalCore(nn.Module):
             if not self.config.disable_batch_norm_for_late_fusion:
                 self.batch_norm_before_aggregation = nn.BatchNorm1d(out_s)
 
+        self.projection = transformer.TransformerModel(
+            1024,
+            3584,
+            8,
+            2048,
+            1,
+            0.2
+            # config.ta_ntoken,
+            # config.ta_ninp,
+            # config.ta_nheads,
+            # config.ta_nhid,
+            # config.ta_nencoders,
+            # config.ta_dropout
+        )
+        for p in self.projection.parameters():
+            if p.dim() > 1:
+                nn.init.xavier_uniform_(p)
+
+
         if config.transformer_aggregation:
             # TODO : Refactor
             # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -100,6 +119,10 @@ class MultiModalCore(nn.Module):
         :return:
         """
         q = q.unsqueeze(1).repeat(1, v.shape[1], 1)
+
+        print(f'q.size: {q.size()}')
+        print(f'v.size: {v.size()}')
+
         if not self.config.disable_early_fusion:
             x = torch.cat([v, q], dim=2)  # B x num_objs x (2 * emb_size)
         else:
@@ -116,25 +139,37 @@ class MultiModalCore(nn.Module):
 
         curr_lin_layer = -1
 
-        # Pass through MMC
-        for mmc_layer in self.mmc_layers:
-            # if isinstance(mmc_layer, nn.Linear):
-            if isinstance(mmc_layer, LinearWithDropout):
-                curr_lin_layer += 1
-                mmc_out = mmc_layer(x)
-                x_new = mmc_out
-                if curr_lin_layer > 0:
-                    if self.config.mmc_connection == 'residual':
-                        x_new = x + mmc_out
-                if x_new is None:
-                    x_new = mmc_out
-                x = x_new
-            else:
-                x = mmc_layer(x)
+        print(f'x.size: {x.size()}')
 
-        x = x.view(-1, self.mmc_sizes[-1])
-        x = self.batch_norm_mmc(x)
-        x = x.view(-1, num_objs, self.mmc_sizes[-1])
+        x = x.transpose(0, 1)
+        x = self.projection(x)
+        x = x.transpose(0, 1)
+
+
+        # x_aggregated = x_aggregated.reshape(x_aggregated.shape[0], -1)
+
+
+        # # Pass through MMC
+        # for mmc_layer in self.mmc_layers:
+        #     # if isinstance(mmc_layer, nn.Linear):
+        #     if isinstance(mmc_layer, LinearWithDropout):
+        #         curr_lin_layer += 1
+        #         mmc_out = mmc_layer(x)
+        #         x_new = mmc_out
+        #         if curr_lin_layer > 0:
+        #             if self.config.mmc_connection == 'residual':
+        #                 x_new = x + mmc_out
+        #         if x_new is None:
+        #             x_new = mmc_out
+        #         x = x_new
+        #     else:
+        #         x = mmc_layer(x)
+
+        print(f'x_out.size: {x.size()}')
+
+        # x = x.view(-1, self.mmc_sizes[-1])
+        # x = self.batch_norm_mmc(x)
+        # x = x.view(-1, num_objs, self.mmc_sizes[-1])
 
         # print(f'x.shape : {x.shape}')
         # print(f'q.shape : {q.shape}')
@@ -149,7 +184,7 @@ class MultiModalCore(nn.Module):
 
             if self.config.transformer_aggregation:
                 x = x.transpose(0, 1)
-                x_aggregated = self.transformer_aggregator(x)
+                x_aggregated = self.aggregator(x)
                 x_aggregated = x_aggregated.transpose(0, 1)
                 x_aggregated = x_aggregated.reshape(x_aggregated.shape[0], -1)
             else:
