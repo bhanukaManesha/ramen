@@ -37,69 +37,50 @@ class MultiModalCore(nn.Module):
         self.mmc_layers = []
         self.input_dropout = nn.Dropout(p=config.input_dropout)
 
-        # # Create MLP with early fusion in the first layer followed by batch norm
-        # for mmc_ix in range(len(config.mmc_sizes)):
-        #     if mmc_ix == 0:
-        #         if config.disable_early_fusion:
-        #             in_s = self.v_dim
-        #         else:
-        #             in_s = self.v_dim + self.q_emb_dim
-        #         self.batch_norm_fusion = nn.BatchNorm1d(in_s)
-        #     else:
-        #         in_s = config.mmc_sizes[mmc_ix - 1]
-        #     out_s = config.mmc_sizes[mmc_ix]
-        #     # lin = nn.Linear(in_s, out_s)
-        #     lin = LinearWithDropout(in_s, out_s, dropout_p=config.mmc_dropout)
-        #     self.mmc_layers.append(lin)
-        #     nonlin = getattr(nonlinearity, config.mmc_nonlinearity)()
-        #     self.mmc_layers.append(nonlin)
+        # Create MLP with early fusion in the first layer followed by batch norm
+        for mmc_ix in range(len(config.mmc_sizes)):
+            if mmc_ix == 0:
+                if config.disable_early_fusion:
+                    in_s = self.v_dim
+                else:
+                    in_s = self.v_dim + self.q_emb_dim
+                self.batch_norm_fusion = nn.BatchNorm1d(in_s)
+            else:
+                in_s = config.mmc_sizes[mmc_ix - 1]
+            out_s = config.mmc_sizes[mmc_ix]
+            # lin = nn.Linear(in_s, out_s)
+            lin = LinearWithDropout(in_s, out_s, dropout_p=config.mmc_dropout)
+            self.mmc_layers.append(lin)
+            nonlin = getattr(nonlinearity, config.mmc_nonlinearity)()
+            self.mmc_layers.append(nonlin)
 
-        # self.mmc_layers = nn.ModuleList(self.mmc_layers)
-        # self.batch_norm_mmc = nn.BatchNorm1d(self.mmc_sizes[-1])
+        self.mmc_layers = nn.ModuleList(self.mmc_layers)
+        self.batch_norm_mmc = nn.BatchNorm1d(self.mmc_sizes[-1])
 
-        # # Aggregation
-        # if not self.config.disable_late_fusion:
-        #     out_s += config.q_emb_dim
-        #     if not self.config.disable_batch_norm_for_late_fusion:
-        #         self.batch_norm_before_aggregation = nn.BatchNorm1d(out_s)
+        # Aggregation
+        if not self.config.disable_late_fusion:
+            out_s += config.q_emb_dim
+            if not self.config.disable_batch_norm_for_late_fusion:
+                self.batch_norm_before_aggregation = nn.BatchNorm1d(out_s)
 
-        self.projection = transformer.TransformerModel(
-            64,
-            3584,
-            32,
-            1024,
-            1,
-            0.2
-            # config.ta_ntoken,
-            # config.ta_ninp,
-            # config.ta_nheads,
-            # config.ta_nhid,
-            # config.ta_nencoders,
-            # config.ta_dropout
-        )
-        for p in self.projection.parameters():
-            if p.dim() > 1:
-                nn.init.xavier_uniform_(p)
+        if config.transformer_aggregation:
+            # TODO : Refactor
+            # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            self.aggregator = transformer.TransformerModel(
+                config.ta_ntoken,
+                config.ta_ninp,
+                config.ta_nheads,
+                config.ta_nhid,
+                config.ta_nencoders,
+                config.ta_dropout
+            )
+            for p in self.aggregator.parameters():
+                if p.dim() > 1:
+                    nn.init.xavier_uniform_(p)
 
-
-        # if config.transformer_aggregation:
-        #     # TODO : Refactor
-        #     # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        #     self.aggregator = transformer.TransformerModel(
-        #         config.ta_ntoken,
-        #         config.ta_ninp,
-        #         config.ta_nheads,
-        #         config.ta_nhid,
-        #         config.ta_nencoders,
-        #         config.ta_dropout
-        #     )
-        #     for p in self.aggregator.parameters():
-        #         if p.dim() > 1:
-        #             nn.init.xavier_uniform_(p)
-
-        # else:
-        #     self.aggregator = RNN(out_s, config.mmc_aggregator_dim, nlayers=config.mmc_aggregator_layers,
-        #                           bidirect=True)
+        else:
+            self.aggregator = RNN(out_s, config.mmc_aggregator_dim, nlayers=config.mmc_aggregator_layers,
+                                  bidirect=True)
 
 
 
@@ -133,63 +114,63 @@ class MultiModalCore(nn.Module):
 
         # print(f'emb_size: {emb_size}')
 
-        # x = x.view(-1, emb_size)
-        # x = self.batch_norm_fusion(x)
+        x = x.view(-1, emb_size)
+        x = self.batch_norm_fusion(x)
         x = x.view(-1, num_objs, emb_size)
 
         curr_lin_layer = -1
 
         # print(f'x.size: {x.size()}')
 
-        x = x.transpose(0, 1)
-        x = self.projection(x)
-        x = x.transpose(0, 1)
-        x_aggregated = x.reshape(x.shape[0], -1)
+        # x = x.transpose(0, 1)
+        # x = self.projection(x)
+        # x = x.transpose(0, 1)
+        # x_aggregated = x.reshape(x.shape[0], -1)
 
         # x_aggregated = x_aggregated.reshape(x_aggregated.shape[0], -1)
 
 
-        # # Pass through MMC
-        # for mmc_layer in self.mmc_layers:
-        #     # if isinstance(mmc_layer, nn.Linear):
-        #     if isinstance(mmc_layer, LinearWithDropout):
-        #         curr_lin_layer += 1
-        #         mmc_out = mmc_layer(x)
-        #         x_new = mmc_out
-        #         if curr_lin_layer > 0:
-        #             if self.config.mmc_connection == 'residual':
-        #                 x_new = x + mmc_out
-        #         if x_new is None:
-        #             x_new = mmc_out
-        #         x = x_new
-        #     else:
-        #         x = mmc_layer(x)
+        # Pass through MMC
+        for mmc_layer in self.mmc_layers:
+            # if isinstance(mmc_layer, nn.Linear):
+            if isinstance(mmc_layer, LinearWithDropout):
+                curr_lin_layer += 1
+                mmc_out = mmc_layer(x)
+                x_new = mmc_out
+                if curr_lin_layer > 0:
+                    if self.config.mmc_connection == 'residual':
+                        x_new = x + mmc_out
+                if x_new is None:
+                    x_new = mmc_out
+                x = x_new
+            else:
+                x = mmc_layer(x)
 
         # print(f'x_out.size: {x_aggregated.size()}')
 
-        # x = x.view(-1, self.mmc_sizes[-1])
-        # x = self.batch_norm_mmc(x)
-        # x = x.view(-1, num_objs, self.mmc_sizes[-1])
+        x = x.view(-1, self.mmc_sizes[-1])
+        x = self.batch_norm_mmc(x)
+        x = x.view(-1, num_objs, self.mmc_sizes[-1])
 
         # print(f'x.shape : {x.shape}')
         # print(f'q.shape : {q.shape}')
 
-        # if not self.config.disable_late_fusion:
-        #     x = torch.cat((x, q), dim=2)
-        #     curr_size = x.size()
-        #     if not self.config.disable_batch_norm_for_late_fusion:
-        #         x = x.view(-1, curr_size[2])
-        #         x = self.batch_norm_before_aggregation(x)
-        #         x = x.view(curr_size)
-        #
-        #     if self.config.transformer_aggregation:
-        #         x = x.transpose(0, 1)
-        #         x_aggregated = self.aggregator(x)
-        #         x_aggregated = x_aggregated.transpose(0, 1)
-        #         x_aggregated = x_aggregated.reshape(x_aggregated.shape[0], -1)
-        #     else:
-        #         x_aggregated = self.aggregator(x)
-                # x = self.aggregator_dropout(x)
+        if not self.config.disable_late_fusion:
+            x = torch.cat((x, q), dim=2)
+            curr_size = x.size()
+            if not self.config.disable_batch_norm_for_late_fusion:
+                x = x.view(-1, curr_size[2])
+                x = self.batch_norm_before_aggregation(x)
+                x = x.view(curr_size)
+        
+            if self.config.transformer_aggregation:
+                x = x.transpose(0, 1)
+                x_aggregated = self.aggregator(x)
+                x_aggregated = x_aggregated.transpose(0, 1)
+                x_aggregated = x_aggregated.reshape(x_aggregated.shape[0], -1)
+            else:
+                x_aggregated = self.aggregator(x)
+                # x_aggregated = self.aggregator_dropout(x)
 
             # print(f'x.shape before aggregator : {x.shape}')
 

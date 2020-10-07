@@ -80,9 +80,9 @@ def parse_args():
     parser.add_argument('--transformer_aggregation', action='store_true')
     parser.add_argument('--ta_ntoken', type=int, default=256)
     parser.add_argument('--ta_ninp', type=int, default=2048)
-    parser.add_argument('--ta_nheads', type=int, default=8)
+    parser.add_argument('--ta_nheads', type=int, default=32)
     parser.add_argument('--ta_nhid', type=int, default=1024)
-    parser.add_argument('--ta_nencoders', type=int, default=1)
+    parser.add_argument('--ta_nencoders', type=int, default=2)
     parser.add_argument('--ta_dropout', type=float, default=0.2)
 
     # BAN specific arguments
