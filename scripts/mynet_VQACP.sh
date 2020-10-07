@@ -13,16 +13,16 @@ DATA_ROOT=${PROJECT_ROOT}/dataset/${DATA_SET}
 RESULTS_ROOT=${PROJECT_ROOT}/results/${DATA_SET}_results
 mkdir -p ${RESULTS_ROOT}
 MODEL=Mynet
-EXPT_NAME=${MODEL}_${DATA_SET}
+EXPT_NAME=${MODEL}_${DATA_SET}_question_dropout_0_1
 
 python -u run_network.py \
 --data_set ${DATA_SET} \
 --data_root ${DATA_ROOT} \
 --expt_name ${EXPT_NAME} \
 --words_dropout 0.5 \
---batch_size 64 \
+--batch_size 256 \
 --model ${MODEL} \
---question_dropout_after_rnn 0.5 \
+--question_dropout_after_rnn 0.1 \
 --epochs 100 \
 --spatial_feature_type mesh \
 --spatial_feature_length 16 \

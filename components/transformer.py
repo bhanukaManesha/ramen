@@ -23,7 +23,7 @@ class TransformerModel(nn.Module):
         # Instead of triangular mask, use square mask
         mask = torch.ones(sz, sz)
         # mask = (torch.triu(torch.ones(sz, sz)) == 1).transpose(0, 1)
-        mask = mask.float().masked_fill(mask == 0, float('-inf')).masked_fill(mask == 1, float(0.0))
+        mask = mask.float().masked_fill(mask == 0, float('-inf')).masked_fill(mask == 1, float(0.5))
         return mask
 
     def init_weights(self):

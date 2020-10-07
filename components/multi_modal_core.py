@@ -67,7 +67,7 @@ class MultiModalCore(nn.Module):
 
         # TODO : Refactor
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.transformer_aggregator = transformer.TransformerModel(64, 2048, 8, 1024, 1, 0.2).to(device)
+        self.transformer_aggregator = transformer.TransformerModel(256, 2048, 8, 1024, 1, 0.5).to(device)
         for p in self.transformer_aggregator.parameters():
             if p.dim() > 1:
                 nn.init.xavier_uniform_(p)
