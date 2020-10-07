@@ -64,7 +64,7 @@ class MultiModalCore(nn.Module):
                 self.batch_norm_before_aggregation = nn.BatchNorm1d(out_s)
 
         self.projection = transformer.TransformerModel(
-            1024,
+            256,
             3584,
             8,
             2048,
@@ -93,7 +93,7 @@ class MultiModalCore(nn.Module):
                 config.ta_nencoders,
                 config.ta_dropout
             )
-            for p in self.transformer_aggregator.parameters():
+            for p in self.aggregator.parameters():
                 if p.dim() > 1:
                     nn.init.xavier_uniform_(p)
 
@@ -144,7 +144,7 @@ class MultiModalCore(nn.Module):
         x = x.transpose(0, 1)
         x = self.projection(x)
         x = x.transpose(0, 1)
-
+        x_aggregated = x.reshape(x.shape[0], -1)
 
         # x_aggregated = x_aggregated.reshape(x_aggregated.shape[0], -1)
 
@@ -174,21 +174,21 @@ class MultiModalCore(nn.Module):
         # print(f'x.shape : {x.shape}')
         # print(f'q.shape : {q.shape}')
 
-        if not self.config.disable_late_fusion:
-            x = torch.cat((x, q), dim=2)
-            curr_size = x.size()
-            if not self.config.disable_batch_norm_for_late_fusion:
-                x = x.view(-1, curr_size[2])
-                x = self.batch_norm_before_aggregation(x)
-                x = x.view(curr_size)
-
-            if self.config.transformer_aggregation:
-                x = x.transpose(0, 1)
-                x_aggregated = self.aggregator(x)
-                x_aggregated = x_aggregated.transpose(0, 1)
-                x_aggregated = x_aggregated.reshape(x_aggregated.shape[0], -1)
-            else:
-                x_aggregated = self.aggregator(x)
+        # if not self.config.disable_late_fusion:
+        #     x = torch.cat((x, q), dim=2)
+        #     curr_size = x.size()
+        #     if not self.config.disable_batch_norm_for_late_fusion:
+        #         x = x.view(-1, curr_size[2])
+        #         x = self.batch_norm_before_aggregation(x)
+        #         x = x.view(curr_size)
+        #
+        #     if self.config.transformer_aggregation:
+        #         x = x.transpose(0, 1)
+        #         x_aggregated = self.aggregator(x)
+        #         x_aggregated = x_aggregated.transpose(0, 1)
+        #         x_aggregated = x_aggregated.reshape(x_aggregated.shape[0], -1)
+        #     else:
+        #         x_aggregated = self.aggregator(x)
                 # x = self.aggregator_dropout(x)
 
             # print(f'x.shape before aggregator : {x.shape}')
