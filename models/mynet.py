@@ -18,7 +18,7 @@ class Mynet(nn.Module):
                                        dropout_before_rnn=config.question_dropout_before_rnn,
                                        dropout_after_rnn=config.question_dropout_after_rnn)
 
-        clf_in_size = 15 * 256
+        clf_in_size = 36 * 256
         classifier_layers = []
         for ix, size in enumerate(config.classifier_sizes):
             in_s = clf_in_size if ix == 0 else config.classifier_sizes[ix - 1]
