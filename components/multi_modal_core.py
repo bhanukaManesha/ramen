@@ -37,37 +37,37 @@ class MultiModalCore(nn.Module):
         self.mmc_layers = []
         self.input_dropout = nn.Dropout(p=config.input_dropout)
 
-        # Create MLP with early fusion in the first layer followed by batch norm
-        for mmc_ix in range(len(config.mmc_sizes)):
-            if mmc_ix == 0:
-                if config.disable_early_fusion:
-                    in_s = self.v_dim
-                else:
-                    in_s = self.v_dim + self.q_emb_dim
-                self.batch_norm_fusion = nn.BatchNorm1d(in_s)
-            else:
-                in_s = config.mmc_sizes[mmc_ix - 1]
-            out_s = config.mmc_sizes[mmc_ix]
-            # lin = nn.Linear(in_s, out_s)
-            lin = LinearWithDropout(in_s, out_s, dropout_p=config.mmc_dropout)
-            self.mmc_layers.append(lin)
-            nonlin = getattr(nonlinearity, config.mmc_nonlinearity)()
-            self.mmc_layers.append(nonlin)
+        # # Create MLP with early fusion in the first layer followed by batch norm
+        # for mmc_ix in range(len(config.mmc_sizes)):
+        #     if mmc_ix == 0:
+        #         if config.disable_early_fusion:
+        #             in_s = self.v_dim
+        #         else:
+        #             in_s = self.v_dim + self.q_emb_dim
+        #         self.batch_norm_fusion = nn.BatchNorm1d(in_s)
+        #     else:
+        #         in_s = config.mmc_sizes[mmc_ix - 1]
+        #     out_s = config.mmc_sizes[mmc_ix]
+        #     # lin = nn.Linear(in_s, out_s)
+        #     lin = LinearWithDropout(in_s, out_s, dropout_p=config.mmc_dropout)
+        #     self.mmc_layers.append(lin)
+        #     nonlin = getattr(nonlinearity, config.mmc_nonlinearity)()
+        #     self.mmc_layers.append(nonlin)
 
-        self.mmc_layers = nn.ModuleList(self.mmc_layers)
-        self.batch_norm_mmc = nn.BatchNorm1d(self.mmc_sizes[-1])
+        # self.mmc_layers = nn.ModuleList(self.mmc_layers)
+        # self.batch_norm_mmc = nn.BatchNorm1d(self.mmc_sizes[-1])
 
-        # Aggregation
-        if not self.config.disable_late_fusion:
-            out_s += config.q_emb_dim
-            if not self.config.disable_batch_norm_for_late_fusion:
-                self.batch_norm_before_aggregation = nn.BatchNorm1d(out_s)
+        # # Aggregation
+        # if not self.config.disable_late_fusion:
+        #     out_s += config.q_emb_dim
+        #     if not self.config.disable_batch_norm_for_late_fusion:
+        #         self.batch_norm_before_aggregation = nn.BatchNorm1d(out_s)
 
         self.projection = transformer.TransformerModel(
-            256,
+            64,
             3584,
-            8,
-            2048,
+            32,
+            1024,
             1,
             0.2
             # config.ta_ntoken,
@@ -82,24 +82,24 @@ class MultiModalCore(nn.Module):
                 nn.init.xavier_uniform_(p)
 
 
-        if config.transformer_aggregation:
-            # TODO : Refactor
-            # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-            self.aggregator = transformer.TransformerModel(
-                config.ta_ntoken,
-                config.ta_ninp,
-                config.ta_nheads,
-                config.ta_nhid,
-                config.ta_nencoders,
-                config.ta_dropout
-            )
-            for p in self.aggregator.parameters():
-                if p.dim() > 1:
-                    nn.init.xavier_uniform_(p)
+        # if config.transformer_aggregation:
+        #     # TODO : Refactor
+        #     # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        #     self.aggregator = transformer.TransformerModel(
+        #         config.ta_ntoken,
+        #         config.ta_ninp,
+        #         config.ta_nheads,
+        #         config.ta_nhid,
+        #         config.ta_nencoders,
+        #         config.ta_dropout
+        #     )
+        #     for p in self.aggregator.parameters():
+        #         if p.dim() > 1:
+        #             nn.init.xavier_uniform_(p)
 
-        else:
-            self.aggregator = RNN(out_s, config.mmc_aggregator_dim, nlayers=config.mmc_aggregator_layers,
-                                  bidirect=True)
+        # else:
+        #     self.aggregator = RNN(out_s, config.mmc_aggregator_dim, nlayers=config.mmc_aggregator_layers,
+        #                           bidirect=True)
 
 
 
@@ -120,8 +120,8 @@ class MultiModalCore(nn.Module):
         """
         q = q.unsqueeze(1).repeat(1, v.shape[1], 1)
 
-        print(f'q.size: {q.size()}')
-        print(f'v.size: {v.size()}')
+        # print(f'q.size: {q.size()}')
+        # print(f'v.size: {v.size()}')
 
         if not self.config.disable_early_fusion:
             x = torch.cat([v, q], dim=2)  # B x num_objs x (2 * emb_size)
@@ -133,13 +133,13 @@ class MultiModalCore(nn.Module):
 
         # print(f'emb_size: {emb_size}')
 
-        x = x.view(-1, emb_size)
-        x = self.batch_norm_fusion(x)
+        # x = x.view(-1, emb_size)
+        # x = self.batch_norm_fusion(x)
         x = x.view(-1, num_objs, emb_size)
 
         curr_lin_layer = -1
 
-        print(f'x.size: {x.size()}')
+        # print(f'x.size: {x.size()}')
 
         x = x.transpose(0, 1)
         x = self.projection(x)
@@ -165,7 +165,7 @@ class MultiModalCore(nn.Module):
         #     else:
         #         x = mmc_layer(x)
 
-        print(f'x_out.size: {x.size()}')
+        # print(f'x_out.size: {x_aggregated.size()}')
 
         # x = x.view(-1, self.mmc_sizes[-1])
         # x = self.batch_norm_mmc(x)
@@ -196,9 +196,8 @@ class MultiModalCore(nn.Module):
 
 
             # print(f'x_aggregated.shape after aggregator : {x_aggregated.shape}')
-
-            # x_aggregated = x_aggregated[-1,:,:]
-            # print(f'x_aggregated.shape after aggregator : {x_aggregated.shape}')
+            # x_aggregated = x_aggregated[batch_norm_mmc-1,:,:]
+            # print(f'x_aggregated.shape abatch_norm_mmcfter aggregator : {x_aggregated.shape}')
 
 
         return x, x_aggregated
