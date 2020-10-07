@@ -9,7 +9,9 @@ from components.multi_modal_core import MultiModalCore
 class Mynet(nn.Module):
     def __init__(self, config):
         super(Mynet, self).__init__()
+        config.transformer_aggregation = True
         self.config = config
+
         self.mmc_net = MultiModalCore(config)
         self.w_emb = WordEmbedding(config.w_emb_size, 300)
         self.w_emb.init_embedding(config.glove_file)
@@ -18,7 +20,7 @@ class Mynet(nn.Module):
                                        dropout_before_rnn=config.question_dropout_before_rnn,
                                        dropout_after_rnn=config.question_dropout_after_rnn)
 
-        clf_in_size = 36 * 256
+        clf_in_size = self.config.regions * 256
         classifier_layers = []
         for ix, size in enumerate(config.classifier_sizes):
             in_s = clf_in_size if ix == 0 else config.classifier_sizes[ix - 1]
@@ -50,7 +52,6 @@ class Mynet(nn.Module):
         q_emb = self.q_emb(q, qlen)
         mmc, mmc_aggregated = self.mmc_net(v, b, q_emb)  # B x num_objs x num_hid and B x num_hid
 
-        # 36 * b * 64
         if self.pre_classification_dropout is not None:
             mmc_aggregated = self.pre_classification_dropout(mmc_aggregated)
 

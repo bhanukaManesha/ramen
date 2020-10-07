@@ -38,6 +38,7 @@ def parse_args():
     parser.add_argument('--dictionary_file', type=str, required=False, default=None)
     parser.add_argument('--glove_file', type=str, required=False, default=None)
 
+
     parser.add_argument('--spatial_feature_type', type=str, default='none')
     parser.add_argument('--spatial_feature_length', default=0, type=int)
     parser.add_argument('--h5_prefix', required=False, default='use_split', choices=['use_split', 'all'])
@@ -75,6 +76,15 @@ def parse_args():
     parser.add_argument('--question_dropout_after_rnn', default=None, type=float)
     parser.add_argument('--classifier_dropout', type=float, default=0.5)
 
+    # Transformer specific arguments
+    parser.add_argument('--transformer_aggregation', action='store_true')
+    parser.add_argument('--ta_ntoken', type=int, default=256)
+    parser.add_argument('--ta_ninp', type=int, default=2048)
+    parser.add_argument('--ta_nheads', type=int, default=8)
+    parser.add_argument('--ta_nhid', type=int, default=1024)
+    parser.add_argument('--ta_nencoders', type=int, default=1)
+    parser.add_argument('--ta_dropout', type=float, default=0.2)
+
     # BAN specific arguments
     parser.add_argument('--glimpse', type=int, default=8)
 
@@ -111,8 +121,10 @@ def parse_args():
     args.feature_dir = os.path.join(args.data_root, args.feature_subdir)
     if 'clevr' in args.data_set.lower():
         args.token_length = 45
+        args.regions = 15
     else:
         args.token_length = 14
+        args.regions = 36
 
     if args.dictionary_file is None:
         args.dictionary_file = args.vocab_dir + '/dictionary.pkl'
