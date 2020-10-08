@@ -3,8 +3,9 @@ set -e
 source scripts/common.sh
 cd ${PROJECT_ROOT}
 
+
 DATA_SET=VQA2
-DATA_ROOT=/hdd/robik/${DATA_SET}
+DATA_ROOT=${ROOT}/${DATA_SET}
 
 # Create dictionary and compute GT answer scores
 #python preprocess/create_dictionary.py --data_root ${DATA_ROOT}
