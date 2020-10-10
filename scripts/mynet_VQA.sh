@@ -14,7 +14,7 @@ DATA_ROOT=${PROJECT_ROOT}/dataset/${DATA_SET}
 # Train the model
 RESULTS_ROOT=${PROJECT_ROOT}/results/${DATA_SET}_results
 mkdir -p ${RESULTS_ROOT}
-MODEL=Ramen
+MODEL=Mynet
 EXPT_NAME=${MODEL}_${DATA_SET}_baseline
 
 python -u run_network.py \
@@ -24,6 +24,9 @@ python -u run_network.py \
 --model ${MODEL} \
 --train_split trainval \
 --test_split test \
+--epochs 50 \
 --words_dropout 0.5 \
 --question_dropout_after_rnn 0.5 \
+--resume \
+--resume_expt_dir /home/student/Documents/Bhanuka/HonoursProject/ramen/dataset/VQA_results \
 --h5_prefix use_split  2>&1 | tee ${RESULTS_ROOT}/${EXPT_NAME}.log
