@@ -3,7 +3,7 @@
 source scripts/common.sh
 cd ${PROJECT_ROOT}
 
-DATA_SET=CLEVR_CoGenTA
+DATA_SET=CLEVR_Humans
 DATA_ROOT=${PROJECT_ROOT}/dataset/${DATA_SET}
 
 # Convert to VQA2-like format
@@ -14,7 +14,7 @@ python preprocess/compute_softscore.py --data_root ${DATA_ROOT}
 
 RESULTS_ROOT=${PROJECT_ROOT}/results/${DATA_SET}_results
 mkdir -p ${RESULTS_ROOT}
-MODEL=Ramen
+MODEL=Mynet
 EXPT_NAME=${MODEL}_${DATA_SET}_Baseline
 
 python -u run_network.py \
@@ -25,6 +25,9 @@ python -u run_network.py \
 --spatial_feature_type mesh \
 --spatial_feature_length 16 \
 --epochs 75 \
+--test \
+--resume \
+--resume_expt_dir /home/student/Documents/Bhanuka/HonoursProject/ramen/dataset/CLEVR_Humans_results \
 --h5_prefix use_split 2>&1 | tee ${RESULTS_ROOT}/${EXPT_NAME}.log
 
 # --resume \
