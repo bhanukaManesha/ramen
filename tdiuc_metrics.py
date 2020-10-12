@@ -129,6 +129,7 @@ def mean_per_class(predictions, overall_gt_ann, answerkey, convert_preds=True):
     res_json['overall_with_normalization'] = n_acc
     # print('Overall Traditional Accuracy is %.2f' % n_acc)
 
+    print(json.dumps(res_json, indent=4))
     return res_json
 
 

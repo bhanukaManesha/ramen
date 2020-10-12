@@ -14,7 +14,7 @@ python preprocess/compute_softscore.py --data_root ${DATA_ROOT}
 
 RESULTS_ROOT=${PROJECT_ROOT}/results/${DATA_SET}_results
 mkdir -p ${RESULTS_ROOT}
-MODEL=Ramen
+MODEL=Mynet
 EXPT_NAME=${MODEL}_${DATA_SET}_Baseline
 
 python -u run_network.py \
@@ -24,7 +24,7 @@ python -u run_network.py \
 --model ${MODEL} \
 --spatial_feature_type mesh \
 --spatial_feature_length 16 \
---epochs 75 \
+--epochs 75\
 --h5_prefix use_split 2>&1 | tee ${RESULTS_ROOT}/${EXPT_NAME}.log
 
 # --resume \
