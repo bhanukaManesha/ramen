@@ -64,8 +64,6 @@ class MultiModalCore(nn.Module):
                 self.batch_norm_before_aggregation = nn.BatchNorm1d(out_s)
 
         if config.transformer_aggregation:
-            # TODO : Refactor
-            # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
             self.aggregator = transformer.TransformerModel(
                 config.ta_ntoken,
                 config.ta_ninp,
@@ -101,34 +99,20 @@ class MultiModalCore(nn.Module):
         """
         q = q.unsqueeze(1).repeat(1, v.shape[1], 1)
 
-        # print(f'q.size: {q.size()}')
-        # print(f'v.size: {v.size()}')
-
         if not self.config.disable_early_fusion:
             x = torch.cat([v, q], dim=2)  # B x num_objs x (2 * emb_size)
         else:
             x = v
+
         x = self.input_dropout(x)
         num_objs = x.shape[1]
         emb_size = x.shape[2]
-
-        # print(f'emb_size: {emb_size}')
 
         x = x.view(-1, emb_size)
         x = self.batch_norm_fusion(x)
         x = x.view(-1, num_objs, emb_size)
 
         curr_lin_layer = -1
-
-        # print(f'x.size: {x.size()}')
-
-        # x = x.transpose(0, 1)
-        # x = self.projection(x)
-        # x = x.transpose(0, 1)
-        # x_aggregated = x.reshape(x.shape[0], -1)
-
-        # x_aggregated = x_aggregated.reshape(x_aggregated.shape[0], -1)
-
 
         # Pass through MMC
         for mmc_layer in self.mmc_layers:
@@ -146,23 +130,19 @@ class MultiModalCore(nn.Module):
             else:
                 x = mmc_layer(x)
 
-        # print(f'x_out.size: {x_aggregated.size()}')
-
         x = x.view(-1, self.mmc_sizes[-1])
         x = self.batch_norm_mmc(x)
         x = x.view(-1, num_objs, self.mmc_sizes[-1])
 
-        # print(f'x.shape : {x.shape}')
-        # print(f'q.shape : {q.shape}')
-
         if not self.config.disable_late_fusion:
             x = torch.cat((x, q), dim=2)
             curr_size = x.size()
+
             if not self.config.disable_batch_norm_for_late_fusion:
                 x = x.view(-1, curr_size[2])
                 x = self.batch_norm_before_aggregation(x)
                 x = x.view(curr_size)
-        
+
             if self.config.transformer_aggregation:
                 x = x.transpose(0, 1)
                 x_aggregated = self.aggregator(x)
@@ -170,16 +150,6 @@ class MultiModalCore(nn.Module):
                 x_aggregated = x_aggregated.reshape(x_aggregated.shape[0], -1)
             else:
                 x_aggregated = self.aggregator(x)
-                # x_aggregated = self.aggregator_dropout(x)
-
-            # print(f'x.shape before aggregator : {x.shape}')
-
-
-
-            # print(f'x_aggregated.shape after aggregator : {x_aggregated.shape}')
-            # x_aggregated = x_aggregated[batch_norm_mmc-1,:,:]
-            # print(f'x_aggregated.shape abatch_norm_mmcfter aggregator : {x_aggregated.shape}')
-
 
         return x, x_aggregated
 
