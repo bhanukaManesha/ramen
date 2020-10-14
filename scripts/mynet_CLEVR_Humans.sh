@@ -15,7 +15,7 @@ python preprocess/compute_softscore.py --data_root ${DATA_ROOT}
 RESULTS_ROOT=${PROJECT_ROOT}/results/${DATA_SET}_results
 mkdir -p ${RESULTS_ROOT}
 MODEL=Mynet
-EXPT_NAME=${MODEL}_${DATA_SET}_Baseline
+EXPT_NAME=${MODEL}_${DATA_SET}_dropout
 
 python -u run_network.py \
 --data_set ${DATA_SET} \
@@ -24,13 +24,8 @@ python -u run_network.py \
 --model ${MODEL} \
 --spatial_feature_type mesh \
 --spatial_feature_length 16 \
---epochs 75 \
---test \
---resume \
---resume_expt_dir /home/student/Documents/Bhanuka/HonoursProject/ramen/dataset/CLEVR_Humans_results \
+--epochs 100 \
 --h5_prefix use_split 2>&1 | tee ${RESULTS_ROOT}/${EXPT_NAME}.log
 
 # --resume \
 # --resume_expt_dir /home/student/Documents/Bhanuka/HonoursProject/ramen/dataset/CLEVR_CoGenTA_results \
-#--words_dropout 0.5 \
-#--question_dropout_after_rnn 0.5 \

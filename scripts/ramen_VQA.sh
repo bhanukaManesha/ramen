@@ -23,9 +23,10 @@ python -u run_network.py \
 --expt_name ${EXPT_NAME} \
 --model ${MODEL} \
 --train_split trainval \
---test_split test \
+--test_split test_dev \
 --words_dropout 0.5 \
 --question_dropout_after_rnn 0.5 \
 --test \
---test_doe_not_have_answers \
+--resume \
+--resume_expt_dir /home/student/Documents/Bhanuka/HonoursProject/ramen/dataset/VQA_results \
 --h5_prefix use_split  2>&1 | tee ${RESULTS_ROOT}/${EXPT_NAME}.log
