@@ -120,6 +120,7 @@ def train(model, train_loader, val_loader, num_epochs, optimizer, criterion, arg
                     answers = answers.cuda()
 
 
+
                 pred = model(visual_features, boxes, question_features, answers, question_lengths)
                 loss = criterion(pred, answers)['loss']
                 loss.backward()
