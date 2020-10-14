@@ -25,13 +25,13 @@ python -u run_network.py \
 --model ${MODEL} \
 --question_dropout_after_rnn 0.5 \
 --train_split trainval \
---test_split test \
+--test_split test_dev \
 --spatial_feature_type mesh \
 --spatial_feature_length 16 \
---resume \
---resume_expt_dir /home/student/Documents/Bhanuka/HonoursProject/ramen/dataset/VQA2_results \
 --h5_prefix use_split 2>&1 | tee ${RESULTS_ROOT}/${EXPT_NAME}.log
 
+#--resume \
+#--resume_expt_dir /home/student/Documents/Bhanuka/HonoursProject/ramen/dataset/VQA2_results \
 # --resume \
 # --resume_expt_dir /home/student/Documents/Bhanuka/HonoursProject/ramen/dataset/VQACP2_results \
 #--resume \
