@@ -3,7 +3,7 @@
 source scripts/common.sh
 cd ${PROJECT_ROOT}
 
-DATA_SET=CLEVR_CoGenTA
+DATA_SET=CLEVR_CoGenTB
 DATA_ROOT=${PROJECT_ROOT}/dataset/${DATA_SET}
 
 # Convert to VQA2-like format
@@ -14,7 +14,7 @@ DATA_ROOT=${PROJECT_ROOT}/dataset/${DATA_SET}
 
 RESULTS_ROOT=${PROJECT_ROOT}/results/${DATA_SET}_results
 mkdir -p ${RESULTS_ROOT}
-MODEL=Mynet
+MODEL=Ramen
 EXPT_NAME=${MODEL}_${DATA_SET}_Baseline
 
 python -u run_network.py \
@@ -25,8 +25,10 @@ python -u run_network.py \
 --spatial_feature_type mesh \
 --spatial_feature_length 16 \
 --epochs 100 \
+--test \
 --resume \
---resume_expt_dir /home/student/Documents/Bhanuka/HonoursProject/ramen/dataset/CLEVR_CoGenTA_results \
+--resume_expt_dir /home/student/Documents/Bhanuka/HonoursProject/ramen/dataset/CLEVR_CoGenTB_results \
+--resume_expt_type best \
 --h5_prefix use_split 2>&1 | tee ${RESULTS_ROOT}/${EXPT_NAME}.log
 
 # --resume \
