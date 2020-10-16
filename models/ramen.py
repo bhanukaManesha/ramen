@@ -13,7 +13,7 @@ class Ramen(nn.Module):
         self.mmc_net = MultiModalCore(config)
         self.w_emb = WordEmbedding(config.w_emb_size, 300)
         self.w_emb.init_embedding(config.glove_file)
-        self.q_emb = QuestionEmbedding(300, self.config.q_emb_dim, 1, bidirect=True, dropout=0,
+        self.q_emb = QuestionEmbedding(self.config, 300, self.config.q_emb_dim, 1, bidirect=True, dropout=0,
                                        rnn_type=config.question_rnn_type,
                                        dropout_before_rnn=config.question_dropout_before_rnn,
                                        dropout_after_rnn=config.question_dropout_after_rnn)

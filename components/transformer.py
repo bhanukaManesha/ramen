@@ -21,8 +21,8 @@ class TransformerModel(nn.Module):
 
     def _generate_square_subsequent_mask(self, sz):
         # Instead of triangular mask, use square mask
-        mask = torch.ones(sz, sz)
-        # mask = (torch.triu(torch.ones(sz, sz)) == 1).transpose(0, 1)
+        # mask = torch.ones(sz, sz)
+        mask = (torch.triu(torch.ones(sz, sz)) == 1).transpose(0, 1)
         mask = mask.float().masked_fill(mask == 0, float('-inf')).masked_fill(mask == 1, float(0.5))
         return mask
 

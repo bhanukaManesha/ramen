@@ -97,7 +97,11 @@ class MultiModalCore(nn.Module):
         :param labels
         :return:
         """
+        # print(f'q.shape before : {q.shape}')
         q = q.unsqueeze(1).repeat(1, v.shape[1], 1)
+        # print(f'q.shape after : {q.shape}')
+
+        # B x num_objs x (2 * emb_size)
 
         if not self.config.disable_early_fusion:
             x = torch.cat([v, q], dim=2)  # B x num_objs x (2 * emb_size)
@@ -112,9 +116,10 @@ class MultiModalCore(nn.Module):
         x = self.batch_norm_fusion(x)
         x = x.view(-1, num_objs, emb_size)
 
+
         curr_lin_layer = -1
 
-        # Pass through MMC
+        # # Pass through MMC
         for mmc_layer in self.mmc_layers:
             # if isinstance(mmc_layer, nn.Linear):
             if isinstance(mmc_layer, LinearWithDropout):
