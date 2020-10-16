@@ -131,7 +131,7 @@ class QuestionEmbedding(nn.Module):
             self.dropout_before_rnn = None
 
         self.question_transformer = transformer.TransformerModel(
-            1024,
+            64,
             300,
             5,
             2048,
@@ -187,7 +187,8 @@ class QuestionEmbedding(nn.Module):
 
         # TODO : Needs refactoring
         q_words = self.question_transformer(x)
-        out = q_words[:, -1, :]
+        # out = q_words[:, -1, :]
+        out = q_words.reshape(q_words.shape[0], -1)
         out = nn.Dropout(p=0.2)(out)
 
         # q_words_emb, hidden = self.rnn(x, hidden)  # q_words_emb: B x num_words x gru_dim, hidden: 1 x B x gru_dim

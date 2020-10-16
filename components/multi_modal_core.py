@@ -43,7 +43,8 @@ class MultiModalCore(nn.Module):
                 if config.disable_early_fusion:
                     in_s = self.v_dim
                 else:
-                    in_s = self.v_dim + self.q_emb_dim
+                    # in_s = self.v_dim + self.q_emb_dim
+                    in_s = self.v_dim + 2880
                 self.batch_norm_fusion = nn.BatchNorm1d(in_s)
             else:
                 in_s = config.mmc_sizes[mmc_ix - 1]
@@ -59,7 +60,8 @@ class MultiModalCore(nn.Module):
 
         # Aggregation
         if not self.config.disable_late_fusion:
-            out_s += config.q_emb_dim
+            # out_s += config.q_emb_dim
+            out_s += 2880
             if not self.config.disable_batch_norm_for_late_fusion:
                 self.batch_norm_before_aggregation = nn.BatchNorm1d(out_s)
 
@@ -97,9 +99,8 @@ class MultiModalCore(nn.Module):
         :param labels
         :return:
         """
-        # print(f'q.shape before : {q.shape}')
+
         q = q.unsqueeze(1).repeat(1, v.shape[1], 1)
-        # print(f'q.shape after : {q.shape}')
 
         # B x num_objs x (2 * emb_size)
 
@@ -140,11 +141,14 @@ class MultiModalCore(nn.Module):
         x = x.view(-1, num_objs, self.mmc_sizes[-1])
 
         if not self.config.disable_late_fusion:
+            # print(f'v.shape : {v.shape}')
+            # print(f'q.shape : {q.shape}')
             x = torch.cat((x, q), dim=2)
             curr_size = x.size()
-
+            # print(f'x.shape : {x.shape}')
             if not self.config.disable_batch_norm_for_late_fusion:
                 x = x.view(-1, curr_size[2])
+                # print(f'x.shape after : {x.shape}')
                 x = self.batch_norm_before_aggregation(x)
                 x = x.view(curr_size)
 
