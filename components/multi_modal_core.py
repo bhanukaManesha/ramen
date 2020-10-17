@@ -43,8 +43,7 @@ class MultiModalCore(nn.Module):
                 if config.disable_early_fusion:
                     in_s = self.v_dim
                 else:
-                    # in_s = self.v_dim + self.q_emb_dim
-                    in_s = self.v_dim + 2880
+                    in_s = self.v_dim + self.q_emb_dim
                 self.batch_norm_fusion = nn.BatchNorm1d(in_s)
             else:
                 in_s = config.mmc_sizes[mmc_ix - 1]
@@ -60,8 +59,7 @@ class MultiModalCore(nn.Module):
 
         # Aggregation
         if not self.config.disable_late_fusion:
-            # out_s += config.q_emb_dim
-            out_s += 2880
+            out_s += config.q_emb_dim
             if not self.config.disable_batch_norm_for_late_fusion:
                 self.batch_norm_before_aggregation = nn.BatchNorm1d(out_s)
 

@@ -130,24 +130,24 @@ class QuestionEmbedding(nn.Module):
         else:
             self.dropout_before_rnn = None
 
-        self.question_transformer = transformer.TransformerModel(
-            64,
-            300,
-            5,
-            2048,
-            2,
-            0.2
-        )
-        for p in self.question_transformer.parameters():
-            if p.dim() > 1:
-                nn.init.xavier_uniform_(p)
+        # self.question_transformer = transformer.TransformerModel(
+        #     64,
+        #     300,
+        #     5,
+        #     2048,
+        #     2,
+        #     0.2
+        # )
+        # for p in self.question_transformer.parameters():
+        #     if p.dim() > 1:
+        #         nn.init.xavier_uniform_(p)
 
 
-        # self.rnn = rnn_cls(
-        #     in_dim, num_hid, nlayers,
-        #     bidirectional=bidirect,
-        #     dropout=dropout,
-        #     batch_first=True)
+        self.rnn = rnn_cls(
+            in_dim, num_hid, nlayers,
+            bidirectional=bidirect,
+            dropout=dropout,
+            batch_first=True)
 
         if dropout_after_rnn is not None:
             self.dropout_after_rnn = nn.Dropout(p=dropout_after_rnn)
@@ -185,28 +185,28 @@ class QuestionEmbedding(nn.Module):
 
         # print(f'x.shape : {x.shape}')
 
-        # TODO : Needs refactoring
-        q_words = self.question_transformer(x)
-        # out = q_words[:, -1, :]
-        out = q_words.reshape(q_words.shape[0], -1)
-        out = nn.Dropout(p=0.2)(out)
+        # # TODO : Needs refactoring
+        # q_words = self.question_transformer(x)
+        # # out = q_words[:, -1, :]
+        # out = q_words.reshape(q_words.shape[0], -1)
+        # out = nn.Dropout(p=0.2)(out)
 
-        # q_words_emb, hidden = self.rnn(x, hidden)  # q_words_emb: B x num_words x gru_dim, hidden: 1 x B x gru_dim
+        q_words_emb, hidden = self.rnn(x, hidden)  # q_words_emb: B x num_words x gru_dim, hidden: 1 x B x gru_dim
         # print(f'q_words_emb.shape 1 : {q_words_emb.shape}')
 
-        # out = None
-        # if self.bidirect:
-        #     forward_ = q_words_emb[:, -1, :self.num_hid]
-        #     backward = q_words_emb[:, 0, self.num_hid:]
-        #     hid = torch.cat((forward_, backward), dim=1)
-        #     out = hid
-        #     # return q_words_emb, hid
-        # else:
-        #     out = q_words_emb[:, -1]
+        out = None
+        if self.bidirect:
+            forward_ = q_words_emb[:, -1, :self.num_hid]
+            backward = q_words_emb[:, 0, self.num_hid:]
+            hid = torch.cat((forward_, backward), dim=1)
+            out = hid
+            # return q_words_emb, hid
+        else:
+            out = q_words_emb[:, -1]
             # return q_words_emb, q_words_emb[:, -1]
 
-        # if self.dropout_after_rnn is not None:
-        #     out = self.dropout_after_rnn(out)
+        if self.dropout_after_rnn is not None:
+            out = self.dropout_after_rnn(out)
 
         # print(f'out.shape 1 : {out.shape}')
         return out
