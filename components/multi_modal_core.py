@@ -97,13 +97,14 @@ class MultiModalCore(nn.Module):
         :param labels
         :return:
         """
-
         q = q.unsqueeze(1).repeat(1, v.shape[1], 1)
 
         # B x num_objs x (2 * emb_size)
 
         if not self.config.disable_early_fusion:
             x = torch.cat([v, q], dim=2)  # B x num_objs x (2 * emb_size)
+        elif not self.config.disable_additive_fusion:
+            x = torch.add(v,q)
         else:
             x = v
 
