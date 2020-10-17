@@ -26,7 +26,7 @@ def parse_args():
 
     parser.add_argument('--epochs', type=int, default=25)
     parser.add_argument('--num_hid', type=int, default=1024)
-    parser.add_argument('--q_emb_dim', type=int, default=1024)
+    parser.add_argument('--q_emb_dim', type=int, default=2048)
     parser.add_argument('--model', type=str, default='UpDn')
     parser.add_argument('--apply_rubi', action='store_true')
     parser.add_argument('--batch_size', type=int, default=256)
@@ -56,6 +56,8 @@ def parse_args():
     parser.add_argument('--test_does_not_have_answers', action='store_true')
     parser.add_argument('--train_split', type=str, default='train')
     parser.add_argument('--question_rnn_type', type=str, default='GRU')
+
+    parser.add_argument('--disable_additive_fusion', action='store_true')
 
     # RAMEN specific arguments
     parser.add_argument('--mmc_nonlinearity', default='Swish')
