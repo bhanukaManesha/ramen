@@ -124,9 +124,11 @@ def parse_args():
     if 'clevr' in args.data_set.lower():
         args.token_length = 45
         args.regions = 15
+        args.q_emb_dim = 2560
     else:
         args.token_length = 14
         args.regions = 36
+        args.q_emb_dim = 2048
 
     if args.dictionary_file is None:
         args.dictionary_file = args.vocab_dir + '/dictionary.pkl'

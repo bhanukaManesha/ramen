@@ -23,7 +23,6 @@ python -u run_network.py \
 --expt_name ${EXPT_NAME} \
 --model ${MODEL} \
 --disable_early_fusion \
---q_emb_dim 2560 \
 --spatial_feature_type mesh \
 --spatial_feature_length 16 \
 --h5_prefix use_split 2>&1 | tee ${RESULTS_ROOT}/${EXPT_NAME}.log
