@@ -7,21 +7,22 @@ DATA_SET=CVQA
 DATA_ROOT=${PROJECT_ROOT}/dataset/${DATA_SET}
 
 # Create dictionary and compute GT answer scores
- python preprocess/create_dictionary.py --data_root ${DATA_ROOT}
- python preprocess/compute_softscore.py --data_root ${DATA_ROOT} --min_occurrence 9
+# python preprocess/create_dictionary.py --data_root ${DATA_ROOT}
+# python preprocess/compute_softscore.py --data_root ${DATA_ROOT} --min_occurrence 9
 
 RESULTS_ROOT=${PROJECT_ROOT}/results/${DATA_SET}_results
 mkdir -p ${RESULTS_ROOT}
 MODEL=Mynet
-EXPT_NAME=${MODEL}_${DATA_SET}
+EXPT_NAME=${MODEL}_${DATA_SET}_new_transformer
 
 python -u run_network.py \
 --data_set ${DATA_SET} \
 --data_root ${DATA_ROOT} \
 --expt_name ${EXPT_NAME} \
---batch_size 128 \
 --model ${MODEL} \
 --epochs 100 \
+--disable_early_fusion \
+--ta_ninp 3584 \
 --spatial_feature_type mesh \
 --spatial_feature_length 16 \
 --h5_prefix use_split 2>&1 | tee ${RESULTS_ROOT}/${EXPT_NAME}.log

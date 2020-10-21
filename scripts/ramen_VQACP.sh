@@ -21,6 +21,7 @@ python -u run_network.py \
 --data_root ${DATA_ROOT} \
 --expt_name ${EXPT_NAME} \
 --model ${MODEL} \
+--epochs 100 \
 --batch_size 256 \
 --disable_early_fusion \
 --words_dropout 0.5 \
