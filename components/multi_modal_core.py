@@ -40,10 +40,11 @@ class MultiModalCore(nn.Module):
         # Create MLP with early fusion in the first layer followed by batch norm
         for mmc_ix in range(len(config.mmc_sizes)):
             if mmc_ix == 0:
-                if config.disable_early_fusion:
+                if config.additive_fusion:
                     in_s = self.v_dim
                 else:
                     in_s = self.v_dim + self.q_emb_dim
+
                 self.batch_norm_fusion = nn.BatchNorm1d(in_s)
             else:
                 in_s = config.mmc_sizes[mmc_ix - 1]
@@ -59,9 +60,13 @@ class MultiModalCore(nn.Module):
 
         # Aggregation
         if not self.config.disable_late_fusion:
-            out_s += config.q_emb_dim
-            if not self.config.disable_batch_norm_for_late_fusion:
-                self.batch_norm_before_aggregation = nn.BatchNorm1d(out_s)
+            if config.additive_fusion:
+                if not self.config.disable_batch_norm_for_late_fusion:
+                    self.batch_norm_before_aggregation = nn.BatchNorm1d(out_s)
+            else:
+                out_s += config.q_emb_dim
+                if not self.config.disable_batch_norm_for_late_fusion:
+                    self.batch_norm_before_aggregation = nn.BatchNorm1d(out_s)
 
         if config.transformer_aggregation:
             self.aggregator = transformer.TransformerModel(
@@ -100,11 +105,10 @@ class MultiModalCore(nn.Module):
         q = q.unsqueeze(1).repeat(1, v.shape[1], 1)
 
         # B x num_objs x (2 * emb_size)
-
-        if not self.config.disable_early_fusion:
+        if self.config.additive_fusion:
+            x = torch.add(v, q)
+        elif not self.config.disable_early_fusion:
             x = torch.cat([v, q], dim=2)  # B x num_objs x (2 * emb_size)
-        elif not self.config.disable_additive_fusion:
-            x = torch.add(v,q)
         else:
             x = v
 
@@ -140,24 +144,26 @@ class MultiModalCore(nn.Module):
         x = x.view(-1, num_objs, self.mmc_sizes[-1])
 
         if not self.config.disable_late_fusion:
-            # print(f'x.shape : {x.shape}')
-            # print(f'q.shape : {q.shape}')
-            x = torch.cat((x, q), dim=2)
+            if self.config.additive_fusion:
+                x = torch.add(x, q)
+            elif not self.config.disable_early_fusion:
+                x = torch.cat([x, q], dim=2)  # B x num_objs x (2 * emb_size)
+
+
             curr_size = x.size()
-            # print(f'x.shape : {x.shape}')
             if not self.config.disable_batch_norm_for_late_fusion:
                 x = x.view(-1, curr_size[2])
-                # print(f'x.shape after : {x.shape}')
                 x = self.batch_norm_before_aggregation(x)
                 x = x.view(curr_size)
 
+            x_aggregated = None
             if self.config.transformer_aggregation:
                 # x = x.transpose(0, 1)
                 x_aggregated = self.aggregator(x)
                 # x_aggregated = x_aggregated.transpose(0, 1)
-                print(f'x_aggregated.shape : {x_aggregated.shape}')
+                # print(f'x_aggregated.shape : {x_aggregated.shape}')
                 x_aggregated = x_aggregated.reshape(x_aggregated.shape[0], -1)
-                print(f'x_aggregated after reshape : {x_aggregated.shape}')
+                # print(f'x_aggregated after reshape : {x_aggregated.shape}')
             else:
                 x_aggregated = self.aggregator(x)
 

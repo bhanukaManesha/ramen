@@ -57,7 +57,7 @@ def parse_args():
     parser.add_argument('--train_split', type=str, default='train')
     parser.add_argument('--question_rnn_type', type=str, default='GRU')
 
-    parser.add_argument('--disable_additive_fusion', action='store_true')
+    parser.add_argument('--additive_fusion', action='store_true')
 
     # RAMEN specific arguments
     parser.add_argument('--mmc_nonlinearity', default='Swish')
@@ -68,7 +68,7 @@ def parse_args():
     parser.add_argument('--mmc_aggregator_layers', type=int, default=1)
     parser.add_argument('--mmc_aggregator_dim', type=int, default=1024)
     parser.add_argument('--aggregator_dropout', type=float, default=0)
-    parser.add_argument('--mmc_sizes', type=int, nargs='+', default=[1024, 1024, 1024, 1024],
+    parser.add_argument('--mmc_sizes', type=int, nargs='+', default=[2048, 2048, 2048, 2048],
                         help='Layer sizes for Multi Modal Core')
     parser.add_argument('--classifier_sizes', type=int, nargs='+', default=[2048])
     parser.add_argument('--classifier_nonlinearity', type=str, default='Swish')
@@ -124,13 +124,9 @@ def parse_args():
     if 'clevr' in args.data_set.lower():
         args.token_length = 45
         args.regions = 15
-        # args.q_emb_dim = 2560
-        args.q_emb_dim = 2048
     else:
         args.token_length = 14
         args.regions = 36
-        # args.q_emb_dim = 2048
-        args.q_emb_dim = 2560
 
     if args.dictionary_file is None:
         args.dictionary_file = args.vocab_dir + '/dictionary.pkl'
