@@ -106,7 +106,8 @@ class MultiModalCore(nn.Module):
 
         # B x num_objs x (2 * emb_size)
         if self.config.additive_fusion:
-            x = torch.add(v, q)
+            # x = torch.add(v, q)
+            x = v * q
         elif not self.config.disable_early_fusion:
             x = torch.cat([v, q], dim=2)  # B x num_objs x (2 * emb_size)
         else:
@@ -145,7 +146,8 @@ class MultiModalCore(nn.Module):
 
         if not self.config.disable_late_fusion:
             if self.config.additive_fusion:
-                x = torch.add(x, q)
+                # x = torch.add(x, q)
+                x = x * q
             elif not self.config.disable_early_fusion:
                 x = torch.cat([x, q], dim=2)  # B x num_objs x (2 * emb_size)
 
