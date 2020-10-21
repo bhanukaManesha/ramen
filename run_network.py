@@ -80,7 +80,7 @@ def parse_args():
 
     # Transformer specific arguments
     parser.add_argument('--transformer_aggregation', action='store_true')
-    parser.add_argument('--ta_ntoken', type=int, default=256)
+    parser.add_argument('--ta_ntoken', type=int, default=36)
     parser.add_argument('--ta_ninp', type=int, default=2048)
     parser.add_argument('--ta_nheads', type=int, default=32)
     parser.add_argument('--ta_nhid', type=int, default=1024)
@@ -124,11 +124,13 @@ def parse_args():
     if 'clevr' in args.data_set.lower():
         args.token_length = 45
         args.regions = 15
-        args.q_emb_dim = 2560
+        # args.q_emb_dim = 2560
+        args.q_emb_dim = 2048
     else:
         args.token_length = 14
         args.regions = 36
-        args.q_emb_dim = 2048
+        # args.q_emb_dim = 2048
+        args.q_emb_dim = 2560
 
     if args.dictionary_file is None:
         args.dictionary_file = args.vocab_dir + '/dictionary.pkl'

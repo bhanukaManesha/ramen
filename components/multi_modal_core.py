@@ -140,7 +140,7 @@ class MultiModalCore(nn.Module):
         x = x.view(-1, num_objs, self.mmc_sizes[-1])
 
         if not self.config.disable_late_fusion:
-            # print(f'v.shape : {v.shape}')
+            # print(f'x.shape : {x.shape}')
             # print(f'q.shape : {q.shape}')
             x = torch.cat((x, q), dim=2)
             curr_size = x.size()
@@ -152,10 +152,12 @@ class MultiModalCore(nn.Module):
                 x = x.view(curr_size)
 
             if self.config.transformer_aggregation:
-                x = x.transpose(0, 1)
+                # x = x.transpose(0, 1)
                 x_aggregated = self.aggregator(x)
-                x_aggregated = x_aggregated.transpose(0, 1)
+                # x_aggregated = x_aggregated.transpose(0, 1)
+                print(f'x_aggregated.shape : {x_aggregated.shape}')
                 x_aggregated = x_aggregated.reshape(x_aggregated.shape[0], -1)
+                print(f'x_aggregated after reshape : {x_aggregated.shape}')
             else:
                 x_aggregated = self.aggregator(x)
 
