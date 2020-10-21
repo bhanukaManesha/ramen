@@ -29,6 +29,7 @@ python -u run_network.py \
 --epochs 100 \
 --h5_prefix use_split 2>&1 | tee ${RESULTS_ROOT}/${EXPT_NAME}.log
 
+
 # --resume \
 # --resume_expt_dir /home/student/Documents/Bhanuka/HonoursProject/ramen/dataset/CLEVR_CoGenTA_results \
 #--words_dropout 0.5 \

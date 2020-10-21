@@ -15,7 +15,7 @@ DATA_ROOT=${PROJECT_ROOT}/dataset/${DATA_SET}
 RESULTS_ROOT=${PROJECT_ROOT}/results/${DATA_SET}_results
 mkdir -p ${RESULTS_ROOT}
 MODEL=Ramen
-EXPT_NAME=${MODEL}_${DATA_SET}_Baseline
+EXPT_NAME=${MODEL}_${DATA_SET}_additive_only
 
 python -u run_network.py \
 --data_set ${DATA_SET} \
@@ -24,7 +24,8 @@ python -u run_network.py \
 --model ${MODEL} \
 --spatial_feature_type mesh \
 --spatial_feature_length 16 \
---epochs 100 \
+--epochs 91 \
+--disable_early_fusion \
 --test \
 --resume \
 --resume_expt_dir /home/student/Documents/Bhanuka/HonoursProject/ramen/dataset/CLEVR_CoGenTB_results \

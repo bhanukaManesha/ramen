@@ -15,7 +15,7 @@ python preprocess/compute_softscore.py --data_root ${DATA_ROOT} --top_k 1000
 RESULTS_ROOT=${ROOT}/${DATA_SET}_results
 mkdir -p ${RESULTS_ROOT}
 MODEL=Ramen
-EXPT_NAME=${MODEL}_${DATA_SET}_additive_only_0.5
+EXPT_NAME=${MODEL}_${DATA_SET}_additive_only
 
 python -u run_network.py \
 --data_set ${DATA_SET} \
@@ -23,6 +23,4 @@ python -u run_network.py \
 --expt_name ${EXPT_NAME} \
 --epochs 100 \
 --disable_early_fusion \
---words_dropout 0.5 \
---question_dropout_after_rnn 0.5 \
 --model ${MODEL} 2>&1  | tee ${RESULTS_ROOT}/${EXPT_NAME}.log
