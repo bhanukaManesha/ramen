@@ -15,13 +15,14 @@ DATA_ROOT=${PROJECT_ROOT}/dataset/${DATA_SET}
 RESULTS_ROOT=${PROJECT_ROOT}/results/${DATA_SET}_results
 mkdir -p ${RESULTS_ROOT}
 MODEL=Ramen
-EXPT_NAME=${MODEL}_${DATA_SET}_transformer_q
+EXPT_NAME=${MODEL}_${DATA_SET}_additive_only
 
 python -u run_network.py \
 --data_set ${DATA_SET} \
 --data_root ${DATA_ROOT} \
 --expt_name ${EXPT_NAME} \
 --model ${MODEL} \
+--epochs 100 \
 --disable_early_fusion \
 --spatial_feature_type mesh \
 --spatial_feature_length 16 \
