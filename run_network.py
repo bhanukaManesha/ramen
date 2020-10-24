@@ -68,7 +68,7 @@ def parse_args():
     parser.add_argument('--mmc_aggregator_layers', type=int, default=1)
     parser.add_argument('--mmc_aggregator_dim', type=int, default=1024)
     parser.add_argument('--aggregator_dropout', type=float, default=0)
-    parser.add_argument('--mmc_sizes', type=int, nargs='+', default=[2048, 2048, 2048, 2048],
+    parser.add_argument('--mmc_sizes', type=int, nargs='+', default=[4096, 4096, 4096, 4096],
                         help='Layer sizes for Multi Modal Core')
     parser.add_argument('--classifier_sizes', type=int, nargs='+', default=[2048])
     parser.add_argument('--classifier_nonlinearity', type=str, default='Swish')
