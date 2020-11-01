@@ -7,15 +7,15 @@ DATA_SET=CLEVR_Humans
 DATA_ROOT=${PROJECT_ROOT}/dataset/${DATA_SET}
 
 # Convert to VQA2-like format
-python -u preprocess/convert_from_clevr_humans_to_vqa_format.py --data_root ${DATA_ROOT}
+# python -u preprocess/convert_from_clevr_humans_to_vqa_format.py --data_root ${DATA_ROOT}
 # Create dictionary and compute GT answer scores
-python preprocess/create_dictionary.py --data_root ${DATA_ROOT}
-python preprocess/compute_softscore.py --data_root ${DATA_ROOT}
+# python preprocess/create_dictionary.py --data_root ${DATA_ROOT}
+# python preprocess/compute_softscore.py --data_root ${DATA_ROOT}
 
 RESULTS_ROOT=${PROJECT_ROOT}/results/${DATA_SET}_results
 mkdir -p ${RESULTS_ROOT}
 MODEL=Mynet
-EXPT_NAME=${MODEL}_${DATA_SET}_dropout
+EXPT_NAME=${MODEL}_${DATA_SET}_question_fusion
 
 python -u run_network.py \
 --data_set ${DATA_SET} \
