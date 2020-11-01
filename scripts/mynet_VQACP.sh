@@ -21,10 +21,8 @@ python -u run_network.py \
 --expt_name ${EXPT_NAME} \
 --model ${MODEL} \
 --epochs 100 \
-# --batch_size 256 \
 --words_dropout 0.5 \
 --question_dropout_after_rnn 0.5 \
-# --additive_fusion \
 --h5_prefix use_split 2>&1 | tee ${RESULTS_ROOT}/${EXPT_NAME}.log
 
 # --resume \

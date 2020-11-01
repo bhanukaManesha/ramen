@@ -64,7 +64,7 @@ class MultiModalCore(nn.Module):
                 if not self.config.disable_batch_norm_for_late_fusion:
                     self.batch_norm_before_aggregation = nn.BatchNorm1d(out_s)
             else:
-                out_s += 2 * config.q_emb_dim 
+                out_s += 2*config.q_emb_dim
                 if not self.config.disable_batch_norm_for_late_fusion:
                     self.batch_norm_before_aggregation = nn.BatchNorm1d(out_s)
 
