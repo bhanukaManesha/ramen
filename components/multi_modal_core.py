@@ -40,16 +40,16 @@ class MultiModalCore(nn.Module):
         # Create MLP with early fusion in the first layer followed by batch norm
         for mmc_ix in range(len(config.mmc_sizes)):
             if mmc_ix == 0:
-                if config.additive_fusion:
+                if config.additive_fusion or config.multiplicative_fusion:
                     in_s = self.v_dim
-                else:
+                elif config.concat_fusion:
+                    in_s = self.v_dim + self.q_emb_dim
+                elif config.question_fusion:
                     in_s = self.v_dim + (self.q_emb_dim * 2)
-
                 self.batch_norm_fusion = nn.BatchNorm1d(in_s)
             else:
                 in_s = config.mmc_sizes[mmc_ix - 1]
             out_s = config.mmc_sizes[mmc_ix]
-            # lin = nn.Linear(in_s, out_s)
             lin = LinearWithDropout(in_s, out_s, dropout_p=config.mmc_dropout)
             self.mmc_layers.append(lin)
             nonlin = getattr(nonlinearity, config.mmc_nonlinearity)()
@@ -60,12 +60,14 @@ class MultiModalCore(nn.Module):
 
         # Aggregation
         if not self.config.disable_late_fusion:
-            if config.additive_fusion:
-                if not self.config.disable_batch_norm_for_late_fusion:
+            if not self.config.disable_batch_norm_for_late_fusion:
+                if config.additive_fusion or config.multiplicative_fusion:
                     self.batch_norm_before_aggregation = nn.BatchNorm1d(out_s)
-            else:
-                out_s += 2*config.q_emb_dim
-                if not self.config.disable_batch_norm_for_late_fusion:
+                elif config.concat_fusion:
+                    out_s += config.q_emb_dim
+                    self.batch_norm_before_aggregation = nn.BatchNorm1d(out_s)
+                elif config.question_fusion:
+                    out_s += 2*config.q_emb_dim
                     self.batch_norm_before_aggregation = nn.BatchNorm1d(out_s)
 
         if config.transformer_aggregation:
@@ -104,13 +106,16 @@ class MultiModalCore(nn.Module):
         """
         q = q.unsqueeze(1).repeat(1, v.shape[1], 1)
 
-        # B x num_objs x (2 * emb_size)
+        # Update early fusion strategies
         if self.config.additive_fusion:
             x = torch.add(v, q)
-            # x = v * q
-        elif not self.config.disable_early_fusion:
-            x = torch.cat([q, v, q], dim=2)  # B x num_objs x (2 * emb_size)
-        else:
+        elif self.config.multiplicative_fusion:
+            x = v * q
+        elif self.config.question_fusion:
+            x = torch.cat([q, v, q], dim=2)
+        elif self.config.concat_fusion:
+            x = torch.cat([v, q], dim=2)
+        elif self.config.disable_early_fusion:
             x = v
 
         x = self.input_dropout(x)
@@ -120,7 +125,6 @@ class MultiModalCore(nn.Module):
         x = x.view(-1, emb_size)
         x = self.batch_norm_fusion(x)
         x = x.view(-1, num_objs, emb_size)
-
 
         curr_lin_layer = -1
 
@@ -144,13 +148,17 @@ class MultiModalCore(nn.Module):
         x = self.batch_norm_mmc(x)
         x = x.view(-1, num_objs, self.mmc_sizes[-1])
 
+        x_aggregated = None
         if not self.config.disable_late_fusion:
+            # Update early fusion strategies
             if self.config.additive_fusion:
                 x = torch.add(x, q)
-                # x = x * q
-            elif not self.config.disable_early_fusion:
-                x = torch.cat([q, x, q], dim=2)  # B x num_objs x (2 * emb_size)
-
+            elif self.config.multiplicative_fusion:
+                x = x * q
+            elif self.config.question_fusion:
+                x = torch.cat([q, x, q], dim=2)
+            elif self.config.concat_fusion:
+                x = torch.cat([x, q], dim=2)
 
             curr_size = x.size()
             if not self.config.disable_batch_norm_for_late_fusion:
@@ -158,14 +166,9 @@ class MultiModalCore(nn.Module):
                 x = self.batch_norm_before_aggregation(x)
                 x = x.view(curr_size)
 
-            x_aggregated = None
             if self.config.transformer_aggregation:
-                # x = x.transpose(0, 1)
                 x_aggregated = self.aggregator(x)
-                # x_aggregated = x_aggregated.transpose(0, 1)
-                # print(f'x_aggregated.shape : {x_aggregated.shape}')
                 x_aggregated = x_aggregated.reshape(x_aggregated.shape[0], -1)
-                # print(f'x_aggregated after reshape : {x_aggregated.shape}')
             else:
                 x_aggregated = self.aggregator(x)
 

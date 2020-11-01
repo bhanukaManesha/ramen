@@ -58,6 +58,9 @@ def parse_args():
     parser.add_argument('--question_rnn_type', type=str, default='GRU')
 
     parser.add_argument('--additive_fusion', action='store_true')
+    parser.add_argument('--multiplicative_fusion', action='store_true')
+    parser.add_argument('--question_fusion', action='store_true')
+    parser.add_argument('--concat_fusion', action='store_true')
 
     # RAMEN specific arguments
     parser.add_argument('--mmc_nonlinearity', default='Swish')
