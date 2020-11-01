@@ -23,6 +23,8 @@ python -u run_network.py \
 --expt_name ${EXPT_NAME} \
 --model ${MODEL} \
 --epochs 25 \
+--multiplicative_fusion \
+--q_emb_dim 2048 \
 --train_split trainval \
 --test_split test_dev \
 --words_dropout 0.5 \

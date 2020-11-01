@@ -25,6 +25,9 @@ python -u run_network.py \
 --train_split trainval \
 --test_split test_dev \
 --epochs 25 \
+--multiplicative_fusion \
+--ta_ninp 2048 \
+--q_emb_dim 2048 \
 --words_dropout 0.5 \
 --question_dropout_after_rnn 0.5 \
 --h5_prefix use_split  2>&1 | tee ${RESULTS_ROOT}/${EXPT_NAME}.log
