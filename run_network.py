@@ -26,10 +26,10 @@ def parse_args():
 
     parser.add_argument('--epochs', type=int, default=25)
     parser.add_argument('--num_hid', type=int, default=1024)
-    parser.add_argument('--q_emb_dim', type=int, default=2048)
+    parser.add_argument('--q_emb_dim', type=int, default=1024)
     parser.add_argument('--model', type=str, default='UpDn')
     parser.add_argument('--apply_rubi', action='store_true')
-    parser.add_argument('--batch_size', type=int, default=256)
+    parser.add_argument('--batch_size', type=int, default=64)
     parser.add_argument('--seed', type=int, default=7, help='random seed')
     parser.add_argument('--answers_available', type=int, default=1, help='Are the answers available?')
     parser.add_argument('--mode', type=str, choices=['train', 'test'],
@@ -68,7 +68,7 @@ def parse_args():
     parser.add_argument('--mmc_aggregator_layers', type=int, default=1)
     parser.add_argument('--mmc_aggregator_dim', type=int, default=1024)
     parser.add_argument('--aggregator_dropout', type=float, default=0)
-    parser.add_argument('--mmc_sizes', type=int, nargs='+', default=[4096, 4096, 4096, 4096],
+    parser.add_argument('--mmc_sizes', type=int, nargs='+', default=[2048, 2048, 2048, 2048],
                         help='Layer sizes for Multi Modal Core')
     parser.add_argument('--classifier_sizes', type=int, nargs='+', default=[2048])
     parser.add_argument('--classifier_nonlinearity', type=str, default='Swish')
@@ -81,10 +81,10 @@ def parse_args():
     # Transformer specific arguments
     parser.add_argument('--transformer_aggregation', action='store_true')
     parser.add_argument('--ta_ntoken', type=int, default=36)
-    parser.add_argument('--ta_ninp', type=int, default=2048)
+    parser.add_argument('--ta_ninp', type=int, default=4096)
     parser.add_argument('--ta_nheads', type=int, default=32)
     parser.add_argument('--ta_nhid', type=int, default=1024)
-    parser.add_argument('--ta_nencoders', type=int, default=2)
+    parser.add_argument('--ta_nencoders', type=int, default=1)
     parser.add_argument('--ta_dropout', type=float, default=0.2)
 
     # BAN specific arguments
