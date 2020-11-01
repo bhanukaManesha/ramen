@@ -64,7 +64,7 @@ class MultiModalCore(nn.Module):
                 if not self.config.disable_batch_norm_for_late_fusion:
                     self.batch_norm_before_aggregation = nn.BatchNorm1d(out_s)
             else:
-                out_s += config.q_emb_dim
+                out_s += 2*config.q_emb_dim
                 if not self.config.disable_batch_norm_for_late_fusion:
                     self.batch_norm_before_aggregation = nn.BatchNorm1d(out_s)
 
@@ -149,7 +149,7 @@ class MultiModalCore(nn.Module):
                 x = torch.add(x, q)
                 # x = x * q
             elif not self.config.disable_early_fusion:
-                x = torch.cat([x, q], dim=2)  # B x num_objs x (2 * emb_size)
+                x = torch.cat([q, x, q], dim=2)  # B x num_objs x (2 * emb_size)
 
 
             curr_size = x.size()
