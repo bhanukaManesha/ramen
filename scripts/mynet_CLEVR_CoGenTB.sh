@@ -15,7 +15,7 @@ DATA_ROOT=${PROJECT_ROOT}/dataset/${DATA_SET}
 RESULTS_ROOT=${PROJECT_ROOT}/results/${DATA_SET}_results
 mkdir -p ${RESULTS_ROOT}
 MODEL=Mynet
-EXPT_NAME=${MODEL}_${DATA_SET}_Baseline
+EXPT_NAME=${MODEL}_${DATA_SET}_additive_fusion
 
 python -u run_network.py \
 --data_set ${DATA_SET} \
@@ -24,6 +24,9 @@ python -u run_network.py \
 --model ${MODEL} \
 --spatial_feature_type mesh \
 --spatial_feature_length 16 \
+--additive_fusion \
+--q_emb_dim 2560 \
+--ta_ninp 2560 \
 --epochs 100 \
 --test \
 --resume \
@@ -31,6 +34,8 @@ python -u run_network.py \
 --resume_expt_type best \
 --h5_prefix use_split 2>&1 | tee ${RESULTS_ROOT}/${EXPT_NAME}.log
 
+# --spatial_feature_type mesh \
+# --spatial_feature_length 16 \
 # --resume \
 # --resume_expt_dir /home/student/Documents/Bhanuka/HonoursProject/ramen/dataset/CLEVR_CoGenTA_results \
 #--words_dropout 0.5 \

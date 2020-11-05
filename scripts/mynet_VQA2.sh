@@ -13,7 +13,7 @@ DATA_ROOT=${PROJECT_ROOT}/dataset/${DATA_SET}
 RESULTS_ROOT=${PROJECT_ROOT}/results/${DATA_SET}_results
 mkdir -p ${RESULTS_ROOT}
 MODEL=Mynet
-EXPT_NAME=${MODEL}_${DATA_SET}_question_fusion
+EXPT_NAME=${MODEL}_${DATA_SET}_multiplicative_fusion
 
 python -u run_network.py \
 --data_set ${DATA_SET} \
@@ -21,6 +21,9 @@ python -u run_network.py \
 --expt_name ${EXPT_NAME} \
 --words_dropout 0.5 \
 --epochs 25 \
+--multiplicative_fusion \
+--q_emb_dim 2560 \
+--ta_ninp 2560 \
 --model ${MODEL} \
 --question_dropout_after_rnn 0.5 \
 --train_split trainval \

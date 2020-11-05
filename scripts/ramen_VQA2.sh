@@ -15,7 +15,7 @@ DATA_ROOT=${PROJECT_ROOT}/dataset/${DATA_SET}
 RESULTS_ROOT=${PROJECT_ROOT}/results/${DATA_SET}_results
 mkdir -p ${RESULTS_ROOT}
 MODEL=Ramen
-EXPT_NAME=${MODEL}_${DATA_SET}_question_fusion
+EXPT_NAME=${MODEL}_${DATA_SET}_multiplicative_fusion
 
 python -u run_network.py \
 --data_set ${DATA_SET} \
@@ -23,6 +23,8 @@ python -u run_network.py \
 --expt_name ${EXPT_NAME} \
 --model ${MODEL} \
 --epochs 25 \
+--multiplicative_fusion \
+--q_emb_dim 2048 \
 --train_split trainval \
 --test_split test \
 --words_dropout 0.5 \
