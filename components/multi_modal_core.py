@@ -68,7 +68,7 @@ class MultiModalCore(nn.Module):
                     self.batch_norm_before_aggregation = nn.BatchNorm1d(out_s)
                 elif config.question_fusion:
                     out_s += 2*config.q_emb_dim
-                    self.batch_norm_before_aggregation = nn.BatchNorm1d(out_s)
+                self.batch_norm_before_aggregation = nn.BatchNorm1d(out_s)
 
         if config.transformer_aggregation:
             self.aggregator = transformer.TransformerModel(
