@@ -40,6 +40,7 @@ class MultiModalCore(nn.Module):
         # Create MLP with early fusion in the first layer followed by batch norm
         for mmc_ix in range(len(config.mmc_sizes)):
             if mmc_ix == 0:
+                # @author : Bhanuka
                 if config.additive_fusion or config.multiplicative_fusion:
                     in_s = self.v_dim
                 elif config.concat_fusion:
@@ -59,6 +60,7 @@ class MultiModalCore(nn.Module):
         self.batch_norm_mmc = nn.BatchNorm1d(self.mmc_sizes[-1])
 
         # Aggregation
+        # @author : Bhanuka
         if not self.config.disable_late_fusion:
             if not self.config.disable_batch_norm_for_late_fusion:
                 if config.additive_fusion or config.multiplicative_fusion:
@@ -70,6 +72,8 @@ class MultiModalCore(nn.Module):
                     out_s += 2*config.q_emb_dim
                 self.batch_norm_before_aggregation = nn.BatchNorm1d(out_s)
 
+        # Transformer
+        # @author : Bhanuka
         if config.transformer_aggregation:
             self.aggregator = transformer.TransformerModel(
                 config.ta_ntoken,
@@ -107,6 +111,7 @@ class MultiModalCore(nn.Module):
         q = q.unsqueeze(1).repeat(1, v.shape[1], 1)
 
         # Update early fusion strategies
+        # @author : Bhanuka
         if self.config.additive_fusion:
             x = torch.add(v, q)
         elif self.config.multiplicative_fusion:
@@ -151,6 +156,7 @@ class MultiModalCore(nn.Module):
         x_aggregated = None
         if not self.config.disable_late_fusion:
             # Update early fusion strategies
+            # @author : Bhanuka
             if self.config.additive_fusion:
                 x = torch.add(x, q)
             elif self.config.multiplicative_fusion:

@@ -5,6 +5,7 @@ from components.language_model import QuestionEmbedding
 from components.language_model import WordEmbedding
 from components.multi_modal_core import MultiModalCore
 
+# @author : Bhanuka
 
 class Mynet(nn.Module):
     def __init__(self, config):

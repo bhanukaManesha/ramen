@@ -2,6 +2,10 @@ import math
 import torch
 import torch.nn as nn
 
+# @author : PyTorch
+# source :https://pytorch.org/tutorials/beginner/transformer_tutorial.html
+# @modified : Bhanuka
+
 class TransformerModel(nn.Module):
 
     def __init__(self, ntoken, ninp, nhead, nhid, nlayers, dropout=0.5):
@@ -19,6 +23,7 @@ class TransformerModel(nn.Module):
 
     def _generate_square_subsequent_mask(self, sz):
         # Instead of triangular mask, use square mask
+        # @modified : Bhanuka
         mask = torch.ones(sz, sz)
         mask = mask.float().masked_fill(mask == 0, float('-inf')).masked_fill(mask == 1, float(0.5))
         return mask
