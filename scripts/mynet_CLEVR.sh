@@ -15,7 +15,7 @@ DATA_ROOT=${PROJECT_ROOT}/dataset/${DATA_SET}
 RESULTS_ROOT=${PROJECT_ROOT}/results/${DATA_SET}_results
 mkdir -p ${RESULTS_ROOT}
 MODEL=Mynet
-EXPT_NAME=${MODEL}_${DATA_SET}_question_fusion
+EXPT_NAME=${MODEL}_${DATA_SET}_multiplicative_fusion
 
 python -u run_network.py \
 --data_set ${DATA_SET} \
@@ -23,6 +23,9 @@ python -u run_network.py \
 --expt_name ${EXPT_NAME} \
 --model ${MODEL} \
 --epochs 25 \
+--multiplicative_fusion \
+--q_emb_dim 2560 \
+--ta_ninp 2560 \
 --words_dropout 0.1 \
 --question_dropout_after_rnn 0.1 \
 --spatial_feature_type mesh \

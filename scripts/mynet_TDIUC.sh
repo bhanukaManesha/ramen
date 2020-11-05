@@ -15,7 +15,7 @@ DATA_ROOT=${PROJECT_ROOT}/dataset/${DATA_SET}
 RESULTS_ROOT=${PROJECT_ROOT}/results/${DATA_SET}_results
 mkdir -p ${RESULTS_ROOT}
 MODEL=Mynet
-EXPT_NAME=${MODEL}_${DATA_SET}_question_fusion
+EXPT_NAME=${MODEL}_${DATA_SET}_multiplicative_fusion
 
 python -u run_network.py \
 --data_set ${DATA_SET} \
@@ -25,6 +25,9 @@ python -u run_network.py \
 --train_split train \
 --test_split val \
 --epochs 25 \
+--multiplicative_fusion \
+--q_emb_dim 2048 \
+--ta_ninp 2048 \
 --words_dropout 0.5 \
 --question_dropout_after_rnn 0.5 \
 --h5_prefix use_split  2>&1 | tee ${RESULTS_ROOT}/${EXPT_NAME}.log
