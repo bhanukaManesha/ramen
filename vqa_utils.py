@@ -172,13 +172,12 @@ def instance_bce_with_logits(preds, labels):
         'loss': loss
     }
 
+
 def compute_score_with_logits(logits, labels):
     logits = torch.max(logits, 1)[1].data  # argmax
     one_hots = torch.zeros(*labels.size())
-
     if torch.cuda.is_available():
         one_hots = one_hots.cuda()
-
     one_hots.scatter_(1, logits.view(-1, 1), 1)
     scores = (one_hots * labels)
     return scores

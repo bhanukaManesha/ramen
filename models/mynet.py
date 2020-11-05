@@ -5,11 +5,14 @@ from components.language_model import QuestionEmbedding
 from components.language_model import WordEmbedding
 from components.multi_modal_core import MultiModalCore
 
+# @author : Bhanuka
 
-class Ramen(nn.Module):
+class Mynet(nn.Module):
     def __init__(self, config):
-        super(Ramen, self).__init__()
+        super(Mynet, self).__init__()
+        config.transformer_aggregation = True
         self.config = config
+
         self.mmc_net = MultiModalCore(config)
         self.w_emb = WordEmbedding(config.w_emb_size, 300)
         self.w_emb.init_embedding(config.glove_file)
@@ -18,7 +21,7 @@ class Ramen(nn.Module):
                                        dropout_before_rnn=config.question_dropout_before_rnn,
                                        dropout_after_rnn=config.question_dropout_after_rnn)
 
-        clf_in_size = config.mmc_aggregator_dim * 2
+        clf_in_size = self.config.regions * 36
         classifier_layers = []
         for ix, size in enumerate(config.classifier_sizes):
             in_s = clf_in_size if ix == 0 else config.classifier_sizes[ix - 1]
@@ -51,7 +54,9 @@ class Ramen(nn.Module):
         mmc, mmc_aggregated = self.mmc_net(v, b, q_emb)  # B x num_objs x num_hid and B x num_hid
         if self.pre_classification_dropout is not None:
             mmc_aggregated = self.pre_classification_dropout(mmc_aggregated)
+
         final_emb = self.pre_classification_layers(mmc_aggregated)
         logits = self.classifier(final_emb)
+        # print(f'logits.shape : {logits.shape}')
         out = {'logits': logits, 'q_emb': q_emb}
         return out

@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from torch.autograd import Variable
 import numpy as np
+from components import transformer
 from torch.nn.utils.rnn import pack_padded_sequence
 
 
@@ -111,7 +112,7 @@ class UpDnQuestionEmbedding(nn.Module):
 #         return hid
 
 class QuestionEmbedding(nn.Module):
-    def __init__(self, in_dim, num_hid, nlayers=1, bidirect=True, dropout=0, rnn_type='GRU', words_dropout=None,
+    def __init__(self, config, in_dim, num_hid, nlayers=1, bidirect=True, dropout=0, rnn_type='GRU', words_dropout=None,
                  dropout_before_rnn=None,
                  dropout_after_rnn=None):
         """Module for question embedding
@@ -128,11 +129,13 @@ class QuestionEmbedding(nn.Module):
             self.dropout_before_rnn = nn.Dropout(p=dropout_before_rnn)
         else:
             self.dropout_before_rnn = None
+
         self.rnn = rnn_cls(
             in_dim, num_hid, nlayers,
             bidirectional=bidirect,
             dropout=dropout,
             batch_first=True)
+
         if dropout_after_rnn is not None:
             self.dropout_after_rnn = nn.Dropout(p=dropout_after_rnn)
         else:
@@ -163,7 +166,7 @@ class QuestionEmbedding(nn.Module):
             for bix, token_ixs in enumerate(rand_ixs):
                 x[bix, token_ixs] *= 0
         hidden = self.init_hidden(batch)
-        self.rnn.flatten_parameters()
+        # self.rnn.flatten_parameters()
         if self.dropout_before_rnn is not None:
             x = self.dropout_before_rnn(x)
 
@@ -182,4 +185,5 @@ class QuestionEmbedding(nn.Module):
 
         if self.dropout_after_rnn is not None:
             out = self.dropout_after_rnn(out)
+
         return out

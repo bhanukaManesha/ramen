@@ -4,7 +4,7 @@ source scripts/common.sh
 cd ${PROJECT_ROOT}
 
 
-DATA_SET=VQA2
+DATA_SET=VQA
 DATA_ROOT=${PROJECT_ROOT}/dataset/${DATA_SET}
 
 # Create dictionary and compute GT answer scores
@@ -26,12 +26,12 @@ python -u run_network.py \
 --multiplicative_fusion \
 --q_emb_dim 2048 \
 --train_split trainval \
---test_split test \
+--test_split test_dev \
 --words_dropout 0.5 \
 --question_dropout_after_rnn 0.5 \
 --h5_prefix use_split  2>&1 | tee ${RESULTS_ROOT}/${EXPT_NAME}.log
 
+
 # --test \
 # --resume \
-# --resume_expt_dir /home/student/Documents/Bhanuka/HonoursProject/ramen/dataset/VQA2_results \
-# --resume_expt_dir /home/student/Documents/Bhanuka/HonoursProject/ramen/dataset/VQA2_results \
+# --resume_expt_dir /home/student/Documents/Bhanuka/HonoursProject/ramen/dataset/VQA_results \

@@ -20,7 +20,7 @@ cd ${PROJECT_ROOT}/dataset/CLEVR_CoGenTA/glove
 ln -s ../../glove/glove.6B.300d.txt glove.6B.300d.txt
 
 
-# CLEVR_CoGenTA
+# CLEVR_CoGenTB
 cd ${PROJECT_ROOT}/dataset/CLEVR_CoGenTB/features
 
 ln -s ../../CLEVR/features/train.hdf5 train.hdf5

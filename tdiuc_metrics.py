@@ -65,7 +65,7 @@ def mean_per_class(predictions, overall_gt_ann, answerkey, convert_preds=True):
             res[gt_type + '_f'].append(pred_ans)
             res[gt_type + '_gt'].append(-1)
             notfound += 1
-    print("\n %d of validation answers were not in the answerkey" % notfound)
+    # print("\n %d of validation answers were not in the answerkey" % notfound)
     types = list(set([a['question_type'] for a in overall_gt_ann]))
     sum_acc = []
     eps = 1e-10
@@ -93,7 +93,7 @@ def mean_per_class(predictions, overall_gt_ann, answerkey, convert_preds=True):
     n_acc = 100 * np.mean(np.array(pred_answer_list) == np.array(gt_answer_list))
     res_json['overall_without_normalization'] = n_acc
     # print('Overall Traditional Accuracy is %.2f' % n_acc)
-    print('\n---------------------------------------')
+    # print('\n---------------------------------------')
     res_json['with_normalization'] = []
     # print('USING PER-ANSWER NORMALIZATION\n')
     types = list(set([a['question_type'] for a in overall_gt_ann]))
@@ -129,6 +129,8 @@ def mean_per_class(predictions, overall_gt_ann, answerkey, convert_preds=True):
     res_json['overall_with_normalization'] = n_acc
     # print('Overall Traditional Accuracy is %.2f' % n_acc)
 
+    # print(json.dumps(res_json, indent=4))
+    print(res_json['arithmetic_mpt'])
     return res_json
 
 
@@ -152,6 +154,7 @@ def main():
     parser.add_argument('--answer_ix_map', required=True,
                         help='Json file with ix_to_answer for each answer')
     args = parser.parse_args()
+    print(args.pred_ann)
     with open(args.answer_ix_map, 'rt') as f:
         answer_ix_map = json.load(f)['ix_to_answer']
         answerkey = dict((ans, int(ix)) for ix, ans in zip(answer_ix_map.keys(), answer_ix_map.values()))
@@ -161,9 +164,8 @@ def main():
     gt_ann = json.load(open(args.gt_ann))['annotations']
     predictions = load_json(args.pred_ann, gt_ann, answerkey)
     predictions = np.array(predictions)
-    mean_per_class(predictions, gt_ann, answerkey, convert_preds=False)
+    res = mean_per_class(predictions, gt_ann, answerkey, convert_preds=False)
     print('.------------------------------------------')
-
 
 # %%
 if __name__ == "__main__":

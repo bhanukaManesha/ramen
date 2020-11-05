@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+
 source scripts/common.sh
 cd ${PROJECT_ROOT}
 
@@ -13,7 +14,7 @@ DATA_ROOT=${PROJECT_ROOT}/dataset/${DATA_SET}
 
 RESULTS_ROOT=${PROJECT_ROOT}/results/${DATA_SET}_results
 mkdir -p ${RESULTS_ROOT}
-MODEL=Ramen
+MODEL=Mynet
 EXPT_NAME=${MODEL}_${DATA_SET}_multiplicative_fusion
 
 python -u run_network.py \
@@ -24,9 +25,14 @@ python -u run_network.py \
 --epochs 25 \
 --multiplicative_fusion \
 --q_emb_dim 2560 \
+--ta_ninp 2560 \
+--words_dropout 0.1 \
+--question_dropout_after_rnn 0.1 \
 --spatial_feature_type mesh \
 --spatial_feature_length 16 \
 --h5_prefix use_split 2>&1 | tee ${RESULTS_ROOT}/${EXPT_NAME}.log
 
+#--resume \
+#--resume_expt_dir /home/student/Documents/Bhanuka/HonoursProject/ramen/dataset/CLEVR_results \
 #--words_dropout 0.5 \
 #--question_dropout_after_rnn 0.5 \

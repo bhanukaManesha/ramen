@@ -11,6 +11,7 @@ from models import models
 from train import train
 import math
 import vqa_utils
+from prettytable import PrettyTable
 # from models.rubi import RUBiNet
 # from criterion.rubi_criterion import RUBiCriterion
 
@@ -28,7 +29,7 @@ def parse_args():
     parser.add_argument('--q_emb_dim', type=int, default=1024)
     parser.add_argument('--model', type=str, default='UpDn')
     parser.add_argument('--apply_rubi', action='store_true')
-    parser.add_argument('--batch_size', type=int, default=1024)
+    parser.add_argument('--batch_size', type=int, default=64)
     parser.add_argument('--seed', type=int, default=7, help='random seed')
     parser.add_argument('--answers_available', type=int, default=1, help='Are the answers available?')
     parser.add_argument('--mode', type=str, choices=['train', 'test'],
@@ -36,6 +37,7 @@ def parse_args():
     parser.add_argument('--w_emb_size', type=int, required=False, default=None)
     parser.add_argument('--dictionary_file', type=str, required=False, default=None)
     parser.add_argument('--glove_file', type=str, required=False, default=None)
+
 
     parser.add_argument('--spatial_feature_type', type=str, default='none')
     parser.add_argument('--spatial_feature_length', default=0, type=int)
@@ -54,8 +56,11 @@ def parse_args():
     parser.add_argument('--test_does_not_have_answers', action='store_true')
     parser.add_argument('--train_split', type=str, default='train')
     parser.add_argument('--question_rnn_type', type=str, default='GRU')
-    parser.add_argument('--test_data_root', type=str)
-    parser.add_argument('--test_data_set', type=str, required=False)
+
+    parser.add_argument('--additive_fusion', action='store_true')
+    parser.add_argument('--multiplicative_fusion', action='store_true')
+    parser.add_argument('--question_fusion', action='store_true')
+    parser.add_argument('--concat_fusion', action='store_true')
 
     # RAMEN specific arguments
     parser.add_argument('--mmc_nonlinearity', default='Swish')
@@ -66,7 +71,7 @@ def parse_args():
     parser.add_argument('--mmc_aggregator_layers', type=int, default=1)
     parser.add_argument('--mmc_aggregator_dim', type=int, default=1024)
     parser.add_argument('--aggregator_dropout', type=float, default=0)
-    parser.add_argument('--mmc_sizes', type=int, nargs='+', default=[1024, 1024, 1024, 1024],
+    parser.add_argument('--mmc_sizes', type=int, nargs='+', default=[2048, 2048, 2048, 2048],
                         help='Layer sizes for Multi Modal Core')
     parser.add_argument('--classifier_sizes', type=int, nargs='+', default=[2048])
     parser.add_argument('--classifier_nonlinearity', type=str, default='Swish')
@@ -75,6 +80,15 @@ def parse_args():
     parser.add_argument('--question_dropout_before_rnn', default=None, type=float)
     parser.add_argument('--question_dropout_after_rnn', default=None, type=float)
     parser.add_argument('--classifier_dropout', type=float, default=0.5)
+
+    # Transformer specific arguments
+    parser.add_argument('--transformer_aggregation', action='store_true')
+    parser.add_argument('--ta_ntoken', type=int, default=36)
+    parser.add_argument('--ta_ninp', type=int, default=4096)
+    parser.add_argument('--ta_nheads', type=int, default=32)
+    parser.add_argument('--ta_nhid', type=int, default=1024)
+    parser.add_argument('--ta_nencoders', type=int, default=1)
+    parser.add_argument('--ta_dropout', type=float, default=0.2)
 
     # BAN specific arguments
     parser.add_argument('--glimpse', type=int, default=8)
@@ -92,7 +106,7 @@ def parse_args():
 
     args.dataroot = args.data_root
     if args.results_path is None:
-        args.results_path = args.dataroot +'/' + args.data_set + '_results'
+        args.results_path = args.dataroot + '_results'
     args.answers_available = bool(args.answers_available)
 
     # Handle experiment save/resume
@@ -110,13 +124,12 @@ def parse_args():
 
     args.vocab_dir = os.path.join(args.data_root, args.feature_subdir)
     args.feature_dir = os.path.join(args.data_root, args.feature_subdir)
-    if args.test_data_root:
-        args.test_feature_dir = os.path.join(args.test_data_root, args.feature_subdir)
-
     if 'clevr' in args.data_set.lower():
         args.token_length = 45
+        args.regions = 15
     else:
         args.token_length = 14
+        args.regions = 36
 
     if args.dictionary_file is None:
         args.dictionary_file = args.vocab_dir + '/dictionary.pkl'
@@ -151,14 +164,8 @@ def train_model():
     if not args.test:
         train_dset = VQAFeatureDataset(args.train_split, dictionary, data_root=args.dataroot, args=args)
     else:
-        print("Test Mode enabled.")
         train_dset = None
-
-    if args.test_data_root:
-        val_dset = VQAFeatureDataset(args.test_split, dictionary, data_root=args.test_data_root, custom_test_dataset=True, args=args)
-    else:
-        val_dset = VQAFeatureDataset(args.test_split, dictionary, data_root=args.dataroot, args=args)
-
+    val_dset = VQAFeatureDataset(args.test_split, dictionary, data_root=args.dataroot, args=args)
 
     args.w_emb_size = val_dset.dictionary.ntoken
     args.num_ans_candidates = val_dset.num_ans_candidates
@@ -166,18 +173,18 @@ def train_model():
     args.v_dim = val_dset.v_dim
     model = getattr(models, args.model)(args)
 
+    count_parameters(model)
+
+
     if args.apply_rubi:
         rubi = RUBiNet(model, args.num_ans_candidates, {'input_dim': args.q_emb_dim, 'dimensions': [2048, 2048, 3000]})
-        rubi = model
         if torch.cuda.is_available():
-            model = model.cuda()
-
+            model = rubi.cuda()
     else:
         if torch.cuda.is_available():
             model = model.cuda()
     print("Our kickass model {}".format(model))
 
-    print(torch.cuda.get_device_name(0))
     optimizer = None
     epoch = 0
     best_val_score = 0
@@ -200,10 +207,10 @@ def train_model():
         print("Resumed!")
 
     if not args.test:
-        train_loader = DataLoader(train_dset, batch_size, shuffle=True, num_workers=8, pin_memory=True)
+        train_loader = DataLoader(train_dset, batch_size, shuffle=True, num_workers=16)
     else:
         train_loader = None
-    eval_loader = DataLoader(val_dset, batch_size, shuffle=False, num_workers=8, pin_memory=True)
+    eval_loader = DataLoader(val_dset, batch_size, shuffle=False, num_workers=16)
 
     if args.apply_rubi:
         criterion = RUBiCriterion()
@@ -215,6 +222,17 @@ def train_model():
         train_dset.close_h5_file()
     val_dset.close_h5_file()
 
+def count_parameters(model):
+    table = PrettyTable(["Modules", "Parameters"])
+    total_params = 0
+    for name, parameter in model.named_parameters():
+        if not parameter.requires_grad: continue
+        param = parameter.numel()
+        table.add_row([name, param])
+        total_params += param
+    print(table)
+    print(f"Total Trainable Params: {total_params}")
+    return total_params
 
 if __name__ == '__main__':
     args = parse_args()

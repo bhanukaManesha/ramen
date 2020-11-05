@@ -8,10 +8,8 @@ from torch.autograd import Variable
 
 from vqa_utils import VqaUtils, PerTypeMetric
 from metrics import Metrics, accumulate_metrics
-from tqdm import tqdm
 import numpy as np
 from tqdm import tqdm
-
 
 def compute_score_with_logits(preds, labels, logits_key='logits'):
     """
@@ -22,12 +20,9 @@ def compute_score_with_logits(preds, labels, logits_key='logits'):
     """
     logits = preds[logits_key]
     logits = torch.max(logits, 1)[1].data  # argmax
-
     one_hots = torch.zeros(*labels.size())
-
     if torch.cuda.is_available():
         one_hots = one_hots.cuda()
-
     one_hots.scatter_(1, logits.view(-1, 1), 1)
     scores = (one_hots * labels)
     return scores
@@ -64,31 +59,38 @@ def train(model, train_loader, val_loader, num_epochs, optimizer, criterion, arg
     if args.apply_rubi:
         val_per_type_metric_list_rubi, val_per_type_metric_list_q = [], []
 
+    lr_decay_step = 2
+    lr_decay_rate = .25
     if optimizer is None:
-        lr_decay_step = 2
-        lr_decay_rate = .25
+        
         # lr_decay_epochs = range(10, 25, lr_decay_step)
         # gradual_warmup_steps = [0.5 * args.lr, 1.0 * args.lr, 1.5 * args.lr, 2.0 * args.lr]
         # if args.apply_rubi:
-        lr_decay_epochs = range(14, 24, lr_decay_step)
+        lr_decay_epochs = range(14, 100, lr_decay_step)
         gradual_warmup_steps = [i * args.lr for i in torch.linspace(0.5, 2.0, 7)]
+        print(gradual_warmup_steps)
         # else:
         #     lr_decay_epochs = range(10, 25, lr_decay_step)
         #     gradual_warmup_steps = [0.5 * args.lr, 1.0 * args.lr, 1.5 * args.lr, 2.0 * args.lr]
         optimizer = getattr(torch.optim, args.optimizer)(filter(lambda p: p.requires_grad, model.parameters()),
                                                          lr=args.lr)
+    else:
+        gradual_warmup_steps = []
+        lr_decay_epochs = range(14, 100, lr_decay_step)
+
+
+
     iter_num = 0
     if args.test and start_epoch == num_epochs:
         start_epoch = num_epochs - 1
     for epoch in range(start_epoch, num_epochs):
-        if not args.test:
-            if epoch < len(gradual_warmup_steps):
-                optimizer.param_groups[0]['lr'] = gradual_warmup_steps[epoch]
-            elif epoch in lr_decay_epochs:
-                optimizer.param_groups[0]['lr'] *= lr_decay_rate
-            else:
-                optimizer.param_groups[0]['lr'] = args.lr
-            print("lr {}".format(optimizer.param_groups[0]['lr']))
+        if epoch < len(gradual_warmup_steps):
+            optimizer.param_groups[0]['lr'] = gradual_warmup_steps[epoch]
+        elif epoch in lr_decay_epochs:
+            optimizer.param_groups[0]['lr'] *= lr_decay_rate
+        else:
+            optimizer.param_groups[0]['lr'] = args.lr
+        print("lr {}".format(optimizer.param_groups[0]['lr']))
 
         is_best = False
         train_metrics, val_metrics = Metrics(), Metrics()
@@ -100,8 +102,11 @@ def train(model, train_loader, val_loader, num_epochs, optimizer, criterion, arg
             val_metrics_rubi, val_metrics_q = None, None
 
         if not args.test:
+            tqdm_train_loader = tqdm(train_loader, position=0, leave=True)
             for i, (visual_features, boxes, question_features, answers, question_types, question_ids,
-                    question_lengths) in enumerate(tqdm(train_loader)):
+                    question_lengths) in enumerate(tqdm_train_loader):
+
+                tqdm_train_loader.set_description(f'Loss : {train_metrics.get_loss()} | Score {train_metrics.get_score()}')
 
                 visual_features = Variable(visual_features.float())
                 boxes = Variable(boxes.float())
@@ -113,6 +118,8 @@ def train(model, train_loader, val_loader, num_epochs, optimizer, criterion, arg
                     boxes = boxes.cuda()
                     question_features = question_features.cuda()
                     answers = answers.cuda()
+
+
 
                 pred = model(visual_features, boxes, question_features, answers, question_lengths)
                 loss = criterion(pred, answers)['loss']
@@ -127,8 +134,8 @@ def train(model, train_loader, val_loader, num_epochs, optimizer, criterion, arg
                 optimizer.step()
                 optimizer.zero_grad()
                 iter_num += 1
-                if i % 100 == 0:
-                    train_metrics.print(epoch)
+                #if i % 10 == 0:
+                    #train_metrics.print(epoch)
                     # if args.apply_rubi:
                     #     print("\n\n### logits_rubi ###")
                     #     train_metrics_rubi.print(epoch)
@@ -161,10 +168,7 @@ def train(model, train_loader, val_loader, num_epochs, optimizer, criterion, arg
                 best_val_epoch = epoch
                 is_best = True
 
-            if args.test:
-                save_val_metrics = True
-            else:
-                save_val_metrics = not args.test or not args.test_does_not_have_answers
+            save_val_metrics = not args.test or not args.test_does_not_have_answers
             if save_val_metrics:
                 print("Best val score {} at epoch {}".format(best_val_score, best_val_epoch))
                 print(f"### Val from Logits {val_metrics.score}")
@@ -212,34 +216,31 @@ def train(model, train_loader, val_loader, num_epochs, optimizer, criterion, arg
 #
 def evaluate_by_logits_key(model, dataloader, epoch, criterion, args, val_metrics, logits_key='logits'):
     per_type_metric = PerTypeMetric(epoch=epoch)
-    # if args.test:
-    #     with open(os.path.join(args.test_data_root, args.feature_subdir, 'answer_ix_map.json')) as f:
-    #         answer_ix_map = json.load(f)
-    # else:
     with open(os.path.join(args.data_root, args.feature_subdir, 'answer_ix_map.json')) as f:
         answer_ix_map = json.load(f)
 
     all_preds = []
 
-    for visual_features, boxes, question_features, answers, question_types, question_ids, question_lengths in iter(tqdm(
-            dataloader)):
+    for visual_features, boxes, question_features, answers, question_types, question_ids, question_lengths in iter(
+            dataloader):
         visual_features = Variable(visual_features.float())
         boxes = Variable(boxes.float())
         question_features = Variable(question_features)
+
         if torch.cuda.is_available():
             visual_features = visual_features.cuda()
             boxes = boxes.cuda()
             question_features = question_features.cuda()
-            answers = answers.cuda()
 
-        # if not args.test or not args.test_does_not_have_answers:
-        # answers = answers.cuda()
+        if not args.test or not args.test_does_not_have_answers:
+            if torch.cuda.is_available():
+                answers = answers.cuda()
 
         pred = model(visual_features, boxes, question_features, None, question_lengths)
 
-        # if not args.test or not args.test_does_not_have_answers:
-        loss = criterion(pred, answers)['loss']
-        val_metrics.update_per_batch(model, answers, loss, pred, visual_features.shape[0], logits_key=logits_key)
+        if not args.test or not args.test_does_not_have_answers:
+            loss = criterion(pred, answers)['loss']
+            val_metrics.update_per_batch(model, answers, loss, pred, visual_features.shape[0], logits_key=logits_key)
 
         pred_ans_ixs = pred[logits_key].max(1)[1]
 
@@ -250,13 +251,10 @@ def evaluate_by_logits_key(model, dataloader, epoch, criterion, args, val_metric
                 'question_id': int(question_ids[curr_ix].data),
                 'answer': str(pred_ans)
             })
-            # if not args.test or not args.test_does_not_have_answers:
-            per_type_metric.update_for_question_type(question_types[curr_ix],
-                                                     answers[curr_ix].cpu().data.numpy(),
-                                                     pred[logits_key][curr_ix].cpu().data.numpy())
-
-        val_metrics.print()
-
+            if not args.test or not args.test_does_not_have_answers:
+                per_type_metric.update_for_question_type(question_types[curr_ix],
+                                                         answers[curr_ix].cpu().data.numpy(),
+                                                         pred[logits_key][curr_ix].cpu().data.numpy())
     val_metrics.update_per_epoch()
     return {
         'all_preds': all_preds,
@@ -301,13 +299,8 @@ def _internal_evaluation(args,
 
 
 def evaluate(model, dataloader, epoch, criterion, args, val_metrics, val_metrics_rubi=None, val_metrics_q=None):
-
-    if args.test:
-        with open(os.path.join(args.data_root, args.feature_subdir, 'answer_ix_map.json')) as f:
-            answer_ix_map = json.load(f)
-    else:
-        with open(os.path.join(args.data_root, args.feature_subdir, 'answer_ix_map.json')) as f:
-            answer_ix_map = json.load(f)
+    with open(os.path.join(args.data_root, args.feature_subdir, 'answer_ix_map.json')) as f:
+        answer_ix_map = json.load(f)
 
     per_type_metric = PerTypeMetric(epoch=epoch)
     all_preds = []
@@ -327,7 +320,8 @@ def evaluate(model, dataloader, epoch, criterion, args, val_metrics, val_metrics
             question_features = question_features.cuda()
 
         if not args.test or not args.test_does_not_have_answers:
-            answers = answers.cuda()
+            if torch.cuda.is_available():
+                answers = answers.cuda()
 
         pred = model(visual_features, boxes, question_features, None, question_lengths)
         _internal_evaluation(args,

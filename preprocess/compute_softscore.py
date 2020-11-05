@@ -128,17 +128,18 @@ def preprocess_answer(answer):
     answer = answer.replace(',', '')
     return answer
 
-def filter_answers(answers_dset, min_occurence):
+
+def filter_answers(answers_dset, min_occurence, tdiuc=False):
     """This will change the answer to preprocessed version
     """
     occurence = {}
 
     for ans_entry in answers_dset:
         answers = ans_entry['answers']
-        if 'multiple_choice_answer' in ans_entry:
-            gtruth = ans_entry['multiple_choice_answer']
+        if tdiuc:
+            gtruth = answers[0]['answer']
         else:
-            gtruth = ans_entry['answers'][0]['answer']
+            gtruth = ans_entry['multiple_choice_answer']
         gtruth = preprocess_answer(gtruth)
         if gtruth not in occurence:
             occurence[gtruth] = set()
@@ -285,6 +286,7 @@ if __name__ == '__main__':
     parser.add_argument('--data_root')
     parser.add_argument('--top_k', type=int)
     parser.add_argument('--min_occurrence', type=int)
+    parser.add_argument('--tdiuc', action='store_true')
     args = parser.parse_args()
 
     data_root = args.data_root
@@ -316,9 +318,9 @@ if __name__ == '__main__':
     if args.top_k is not None:
         occurrence = filter_top_k_answers(train_answers, top_k=args.top_k)
     elif args.min_occurrence is not None:
-        occurrence = filter_answers(answers, min_occurence=args.min_occurrence)
+        occurrence = filter_answers(answers, min_occurence=args.min_occurrence, tdiuc=args.tdiuc)
     else:
-        occurrence = filter_answers(answers, min_occurence=0)
+        occurrence = filter_answers(answers, min_occurence=0, tdiuc=args.tdiuc)
 
     ans2label = create_ans2label(occurrence, 'trainval', cache_root=features_path)
     if 'clevr' in args.data_root.lower():
